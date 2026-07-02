@@ -1,0 +1,59 @@
+.tree-groupe {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+}
+
+.tree-groupe__titre {
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+table.width-100pc thead th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 5px;
+}
+
+table tbody tr:nth-child(odd) {
+  background-color: #f7f8fe;
+}
+
+table tbody tr:nth-child(even) {
+  background-color: white;
+}
+
+/* table-layout: fixed force chaque table à prendre les largeurs du
+   <colgroup> au lieu de les calculer selon son contenu : les tables
+   de tous les niveaux partagent donc la même grille de colonnes. */
+table.attribut-table {
+  table-layout: fixed;
+}
+
+col.col-libelle {
+  width: 220px;
+}
+
+col.col-page {
+  width: 90px;
+}
+
+col.col-actions {
+  width: 70px;
+}
+
+/* col-avant / col-apres : sans largeur, elles se partagent
+   l'espace restant à parts égales. */
+
+table tbody tr td:first-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 5px;
+  box-sizing: border-box;
+}
+
+table tbody tr td:not(:first-child) {
+  padding: 0 10px;
+}

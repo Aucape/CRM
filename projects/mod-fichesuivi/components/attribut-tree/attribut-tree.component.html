@@ -1,0 +1,193 @@
+@if (feuilles().length) {
+
+  <div class="width-100pc display-flex  background-color-white border-1px-solid-f3f3f3">
+
+    <!-- Niveau "feuille" : un seul tableau pour tous les attributs de ce niveau -->
+    <!-- Le <colgroup> est identique à chaque niveau de récursion : combiné à
+         table-layout: fixed, il garantit que toutes les tables (imbriquées ou
+         non) placent leurs colonnes aux mêmes positions. -->
+    <table class="width-100pc text-align-left border-collapse-collapse attribut-table">
+      <colgroup>
+        <col class="col-libelle">
+        <col class="col-avant">
+        <col class="col-apres">
+        <col class="col-page">
+        <col class="col-actions">
+      </colgroup>
+      <thead>
+      <tr class="position-sticky top-0 background-color-white z-index-2">
+        <th></th>
+        <th>Avant</th>
+        <th>Apres</th>
+        <th></th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+
+        @for (data of feuilles(); track data.IDENTIFIANT_ATTRIBUT) {
+          <tr>
+            <td class="height-35px">
+              <!-- L'indentation se fait sur le libellé uniquement, jamais sur
+                   la table, pour ne pas décaler les colonnes. -->
+              <div class="display-flex gap-5" [style.padding-left.px]="depth() * 16">
+                <span class="font-size-12">{{ data.LIBELLE }}</span>
+              </div>
+            </td>
+
+            <td>
+
+              @if (data.TYPE_SELECTION == 'SELECTION'){
+
+                <div class="display-flex gap-3">
+
+                  @for (element of data.SELECTION; track element) {
+                    <button (click)="setData2(element, data, 'VALEUR_OLD')" [style.background-color]="data.VALEUR_OLD === element.ID_VALEUR ? ficheSuiviService.TABdata().CONFIG.COULEUR_PASTEL : ''" [style.color]="data.VALEUR_OLD === element.ID_VALEUR ? ficheSuiviService.TABdata().CONFIG.COULEUR_TEXTE : ''" class="button-neo-new border-1px-solid-e7e7e7">{{element.NOM_VALEUR}}</button>
+                  }
+                </div>
+
+              }
+
+              @if (data.TYPE_ATTRIBUT === 'BOOL') {
+                <app-component-toggle [(dataNgModel)]="data.VALEUR_OLD" [disabled]="true"></app-component-toggle>
+              }
+
+              @if (data.TYPE_ATTRIBUT === 'DATE') {
+                <app-input-date-neo
+                  [(dataNgModel)]="data.VALEUR_OLD"
+                  [restrict]="'all'"
+                  [displayLabel]="false"
+                  [label]="'Date'"
+                  [background]="'white'"
+                  [disabled]="true"
+                ></app-input-date-neo>
+              }
+
+              @if (data.TYPE_ATTRIBUT === 'TEXTE') {
+                <app-input-neo
+                  [(dataNgModel)]="data.VALEUR_OLD"
+                  [displayLabel]="false"
+                  [background]="'white'"
+                  [placeholder]="'Commentaire'"
+                  [readonly]="true"
+                  class="width-100pc"
+                ></app-input-neo>
+              }
+
+              @if (data.TYPE_ATTRIBUT === 'SELECTION') {
+
+                <div class="display-flex gap-3">
+
+                  @for (button of ficheSuiviService['TABButton' + data.TYPE_SELECTION]; track button) {
+                    <button
+                      (click)="setData(button, data, 'VALEUR_OLD')"
+                      [style.background-color]="data.VALEUR_OLD == button.ID ? button.background : ''"
+                      [style.color]="data.VALEUR_OLD == button.ID ? button.color : ''"
+                      [style.border]="data.VALEUR_OLD == button.ID ? button.border : ''"
+                      [innerHtml]="button.VALUE"
+                      [disabled]="true"
+                      class="width-38px background-color-white border-1px-solid-e7e7e7 padding-top-bottom-5-left-right-10 border-radius-5px"
+                    ></button>
+                  }
+
+                </div>
+
+              }
+            </td>
+
+            <td>
+
+              @if (data.TYPE_SELECTION == 'SELECTION'){
+
+                <div class="display-flex gap-3">
+
+                  @for (element of data.SELECTION; track element) {
+                    <button (click)="setData2(element, data, 'VALEUR_NEW')" [style.background-color]="data.VALEUR_NEW === element.ID_VALEUR ? ficheSuiviService.TABdata().CONFIG.COULEUR_PASTEL : ''" [style.color]="data.VALEUR_NEW === element.ID_VALEUR ? ficheSuiviService.TABdata().CONFIG.COULEUR_TEXTE : ''" class="button-neo-new border-1px-solid-e7e7e7">{{element.NOM_VALEUR}}</button>
+                  }
+                </div>
+
+              }
+
+              @if (data.TYPE_ATTRIBUT === 'BOOL') {
+                <app-component-toggle [(dataNgModel)]="data.VALEUR_NEW"></app-component-toggle>
+              }
+
+              @if (data.TYPE_ATTRIBUT === 'DATE') {
+                <app-input-date-neo
+                  [(dataNgModel)]="data.VALEUR_NEW"
+                  [restrict]="'all'"
+                  [displayLabel]="false"
+                  [label]="'Date'"
+                  [background]="'white'"
+                ></app-input-date-neo>
+              }
+
+              @if (data.TYPE_ATTRIBUT === 'TEXTE') {
+                <app-input-neo
+                  [(dataNgModel)]="data.VALEUR_NEW"
+                  [displayLabel]="false"
+                  [background]="'white'"
+                  [placeholder]="'Commentaire'"
+                  class="width-100pc"
+                ></app-input-neo>
+              }
+
+              @if (data.TYPE_ATTRIBUT === 'SELECTION') {
+                <div class="display-flex gap-3">
+
+                  @for (button of ficheSuiviService['TABButton' + data.TYPE_SELECTION]; track button) {
+                    <button
+                      (click)="setData(button, data, 'VALEUR_NEW')"
+                      [style.background-color]="data.VALEUR_NEW == button.ID ? button.background : ''"
+                      [style.color]="data.VALEUR_NEW == button.ID ? button.color : ''"
+                      [style.border]="data.VALEUR_NEW == button.ID ? button.border : ''"
+                      [innerHtml]="button.VALUE"
+                      class="width-38px background-color-white border-1px-solid-e7e7e7 padding-top-bottom-5-left-right-10 border-radius-5px"
+                    ></button>
+                  }
+                </div>
+              }
+            </td>
+
+            <td>
+              <div class="display-flex align-items-center gap-5">
+                @if (data.PAGE) {
+                  <span>Page {{ data.PAGE }}</span>
+                }
+
+                @if (data.REF) {
+                  <i class="fa-solid fa-file badge-tomato cursor-pointer"></i>
+                }
+              </div>
+            </td>
+
+            <td>
+              <div class="display-flex gap-5">
+                <i class="fa-solid fa-check badge-green cursor-pointer"></i>
+                <i class="fa-solid fa-xmark badge-tomato cursor-pointer"></i>
+              </div>
+            </td>
+          </tr>
+        }
+
+      </tbody>
+    </table>
+
+
+  </div>
+}
+
+@for (groupe of groupes(); track groupe.LIBELLE) {
+
+  <div class="tree-groupe">
+    <!-- Seul le titre est indenté : si le padding est mis sur le conteneur,
+         la table imbriquée rétrécit et ses colonnes ne s'alignent plus. -->
+    <div class="tree-groupe__titre" [style.padding-left.px]="depth() * 16">{{ groupe.LIBELLE }}</div>
+
+    <app-attribut-tree
+      [items]="groupe.TAB"
+      [depth]="depth() + 1"
+    />
+  </div>
+
+}
