@@ -35,6 +35,10 @@ col.col-libelle {
   width: 220px;
 }
 
+col.col-fleche {
+  width: 44px;
+}
+
 col.col-page {
   width: 90px;
 }
@@ -56,4 +60,33 @@ table tbody tr td:first-child {
 
 table tbody tr td:not(:first-child) {
   padding: 0 10px;
+}
+
+/* Colonne centrale de comparaison : les deux lignes verticales délimitent
+   les zones Avant / Après. Sélecteurs longs pour surpasser les paddings
+   génériques ci-dessus. */
+table thead th.th-fleche,
+table tbody tr td.cell-fleche {
+  text-align: center;
+  border-left: 1px solid #eef0f8;
+  border-right: 1px solid #eef0f8;
+  padding: 0;
+}
+
+td.cell-fleche i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 12px;
+  color: #9aa3bd;
+  background-color: #eef0f8;
+}
+
+/* Avant ≠ Après : la pastille passe en bleu pour signaler le changement. */
+td.cell-fleche i.cell-fleche--modifie {
+  color: white;
+  background-color: #4a6cf7;
 }

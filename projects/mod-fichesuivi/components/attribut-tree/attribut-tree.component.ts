@@ -91,6 +91,11 @@ export class AttributTreeComponent {
     this.items().filter((i): i is AttributGroupe => estGroupe(i))
   );
 
+  /** Vrai si la valeur diffère entre Avant et Après (pilote la flèche bleue). */
+  protected estModifie(data: AttributLeaf): boolean {
+    return String(data.VALEUR_OLD ?? '') !== String(data.VALEUR_NEW ?? '');
+  }
+
   protected setData(button,data,key){
     data[key] = data[key] === button.ID ? null : button.ID;
   }

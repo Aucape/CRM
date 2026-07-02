@@ -10,6 +10,7 @@
       <colgroup>
         <col class="col-libelle">
         <col class="col-avant">
+        <col class="col-fleche">
         <col class="col-apres">
         <col class="col-page">
         <col class="col-actions">
@@ -18,6 +19,7 @@
       <tr class="position-sticky top-0 background-color-white z-index-2">
         <th></th>
         <th>Avant</th>
+        <th class="th-fleche"></th>
         <th>Apres</th>
         <th></th>
         <th></th>
@@ -28,9 +30,7 @@
         @for (data of feuilles(); track data.IDENTIFIANT_ATTRIBUT) {
           <tr>
             <td class="height-35px">
-              <!-- L'indentation se fait sur le libellé uniquement, jamais sur
-                   la table, pour ne pas décaler les colonnes. -->
-              <div class="display-flex gap-5" [style.padding-left.px]="depth() * 16">
+              <div class="display-flex gap-5">
                 <span class="font-size-12">{{ data.LIBELLE }}</span>
               </div>
             </td>
@@ -93,6 +93,13 @@
                 </div>
 
               }
+            </td>
+
+            <!-- Séparateur de comparaison : flèche grise si inchangé,
+                 bleue si la valeur diffère entre Avant et Après. -->
+            <td class="cell-fleche">
+              <i class="fa-solid fa-arrow-right-long"
+                 [class.cell-fleche--modifie]="estModifie(data)"></i>
             </td>
 
             <td>
@@ -180,9 +187,7 @@
 @for (groupe of groupes(); track groupe.LIBELLE) {
 
   <div class="tree-groupe">
-    <!-- Seul le titre est indenté : si le padding est mis sur le conteneur,
-         la table imbriquée rétrécit et ses colonnes ne s'alignent plus. -->
-    <div class="tree-groupe__titre" [style.padding-left.px]="depth() * 16">{{ groupe.LIBELLE }}</div>
+    <div class="tree-groupe__titre">{{ groupe.LIBELLE }}</div>
 
     <app-attribut-tree
       [items]="groupe.TAB"
