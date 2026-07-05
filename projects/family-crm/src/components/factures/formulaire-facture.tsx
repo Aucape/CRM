@@ -10,7 +10,7 @@ import {
   LIBELLES_RECURRENCE,
   RECURRENCES,
 } from "@/lib/constantes";
-import { composantsBruxelles } from "@/lib/dates";
+import { versInputDate } from "@/lib/dates";
 import {
   Bouton,
   Champ,
@@ -18,12 +18,6 @@ import {
   ChampTexteLong,
   LienBouton,
 } from "@/components/ui/base";
-
-function versInputDate(d: Date | null): string {
-  if (!d) return "";
-  const c = composantsBruxelles(d);
-  return `${c.annee}-${String(c.mois).padStart(2, "0")}-${String(c.jour).padStart(2, "0")}`;
-}
 
 export function FormulaireFacture({
   facture,

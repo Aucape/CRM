@@ -175,6 +175,20 @@ export function calculerAge(naissance: Date, maintenant = new Date()): number {
   return age;
 }
 
+/** Date → valeur d'un <input type="date"> (jour mural bruxellois). */
+export function versInputDate(d: Date | null): string {
+  if (!d) return "";
+  const c = composantsBruxelles(d);
+  return `${c.annee}-${String(c.mois).padStart(2, "0")}-${String(c.jour).padStart(2, "0")}`;
+}
+
+/** Date → valeur d'un <input type="time"> (heure murale bruxelloise). */
+export function versInputHeure(d: Date | null): string {
+  if (!d) return "";
+  const c = composantsBruxelles(d);
+  return `${String(c.heure).padStart(2, "0")}:${String(c.minute).padStart(2, "0")}`;
+}
+
 /** « aujourd'hui », « demain », « dans 5 j », « il y a 3 j ». */
 export function libelleRelatif(d: Date, maintenant = new Date()): string {
   const jours = joursRestants(d, maintenant);

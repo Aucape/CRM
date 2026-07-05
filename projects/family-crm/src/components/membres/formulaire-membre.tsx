@@ -5,20 +5,13 @@ import { useActionState } from "react";
 import type { Membre } from "@prisma/client";
 import type { EtatFormulaire } from "@/server/actions/membres";
 import { COULEURS_MEMBRE } from "@/lib/constantes";
-import { composantsBruxelles } from "@/lib/dates";
+import { versInputDate } from "@/lib/dates";
 import {
   Bouton,
   Champ,
   ChampTexteLong,
   LienBouton,
 } from "@/components/ui/base";
-
-/** Date → valeur d'un <input type="date"> (jour mural bruxellois). */
-function versInputDate(d: Date | null): string {
-  if (!d) return "";
-  const c = composantsBruxelles(d);
-  return `${c.annee}-${String(c.mois).padStart(2, "0")}-${String(c.jour).padStart(2, "0")}`;
-}
 
 export function FormulaireMembre({
   membre,
