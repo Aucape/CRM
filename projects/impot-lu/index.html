@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Déclaration d'impôt Luxembourg 2025 — Simulateur & Optimisation</title>
-  <meta name="description" content="Simulez votre déclaration d'impôt luxembourgeoise (année 2025) et découvrez toutes les déductions pour maximiser votre gain fiscal.">
+  <title>Déclaration d'impôt Luxembourg — Simulateur & Optimisation</title>
+  <meta name="description" content="Simulez votre déclaration d'impôt luxembourgeoise (2025/2026), résidents et frontaliers, et maximisez votre gain fiscal.">
+  <meta name="theme-color" content="#d0103a">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🇱🇺</text></svg>">
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -15,28 +17,79 @@
         <span class="brand-flag" aria-hidden="true"><i></i><i></i><i></i></span>
         <div>
           <h1>Simulateur d'impôt Luxembourg</h1>
-          <p>Année d'imposition 2025 · déclaration modèle 100 (à remettre en 2026)</p>
+          <p id="brand-sub">Année d'imposition 2025 · déclaration modèle 100</p>
         </div>
       </div>
       <div class="topbar-actions">
+        <label class="field year-field">
+          <span class="sr-only">Année d'imposition</span>
+          <select name="annee" id="sel-annee" form="form" aria-label="Année d'imposition">
+            <option value="2025">Année 2025</option>
+            <option value="2026">Année 2026 (provisoire)</option>
+          </select>
+        </label>
+        <button type="button" class="btn ghost icon" id="btn-theme" aria-label="Basculer le mode sombre" title="Mode sombre / clair">🌙</button>
+        <button type="button" class="btn ghost" id="btn-export" title="Télécharger vos données (JSON)">Exporter</button>
+        <button type="button" class="btn ghost" id="btn-import" title="Recharger un fichier exporté">Importer</button>
+        <input type="file" id="file-import" accept="application/json" hidden>
         <button type="button" class="btn ghost" id="btn-reset">Réinitialiser</button>
-        <button type="button" class="btn" id="btn-print">Imprimer le récapitulatif</button>
+        <button type="button" class="btn" id="btn-print">Imprimer</button>
       </div>
     </div>
   </header>
+
+  <div class="wrap">
+    <div class="deadline-banner" id="deadline-banner" role="note"></div>
+  </div>
 
   <main class="wrap layout">
     <!-- ================= Formulaire ================= -->
     <form id="form" class="form-col" autocomplete="off">
 
+      <section class="card" id="sec-residence">
+        <h2><span class="step">1</span> Résidence fiscale</h2>
+        <div class="grid">
+          <label class="field">
+            <span>Vous êtes</span>
+            <select name="resident">
+              <option value="oui">Résident luxembourgeois</option>
+              <option value="non">Non-résident (frontalier)</option>
+            </select>
+          </label>
+          <label class="field" id="row-pays" hidden>
+            <span>Pays de résidence</span>
+            <select name="paysResidence">
+              <option value="BE">Belgique</option>
+              <option value="FR">France</option>
+              <option value="DE">Allemagne</option>
+              <option value="autre">Autre</option>
+            </select>
+          </label>
+          <label class="field" id="row-etranger1" hidden>
+            <span>Revenus nets non imposables au Luxembourg — vous <small>(salaire étranger, loyers du pays de résidence…)</small></span>
+            <input type="number" name="revenusEtrangers1" min="0" step="100" placeholder="0">
+          </label>
+          <label class="field conjoint-only" id="row-etranger2" hidden>
+            <span>Revenus nets non imposables au Luxembourg — conjoint</span>
+            <input type="number" name="revenusEtrangers2" min="0" step="100" placeholder="0">
+          </label>
+        </div>
+        <p class="hint" id="hint-residence" hidden>
+          Les revenus étrangers exonérés ne sont pas imposés au Luxembourg mais font monter votre taux
+          (<em>réserve de progressivité</em>). L'accès aux déductions suppose l'<em>assimilation fiscale</em>
+          (art. 157ter) — vérifiée automatiquement ci-contre. Les résidents peuvent aussi déclarer ici des
+          revenus exonérés par convention fiscale.
+        </p>
+      </section>
+
       <section class="card" id="sec-situation">
-        <h2><span class="step">1</span> Situation familiale</h2>
+        <h2><span class="step">2</span> Situation familiale</h2>
         <div class="grid">
           <label class="field span2">
-            <span>État civil au 1er janvier 2025</span>
+            <span>État civil au 1er janvier</span>
             <select name="statut">
               <option value="celibataire">Célibataire</option>
-              <option value="marie">Marié·e (imposition collective)</option>
+              <option value="marie">Marié·e</option>
               <option value="pacs">Partenariat (PACS) déclaré</option>
               <option value="divorce">Divorcé·e / séparé·e</option>
               <option value="veuf">Veuf / veuve</option>
@@ -71,10 +124,13 @@
       </section>
 
       <section class="card" id="sec-revenus">
-        <h2><span class="step">2</span> Revenus 2025</h2>
+        <h2><span class="step">3</span> Revenus imposables au Luxembourg</h2>
+        <div class="section-tools">
+          <button type="button" class="btn subtle" id="btn-certificat">📄 Pré-remplir depuis un certificat de rémunération</button>
+        </div>
         <div class="grid">
           <label class="field">
-            <span>Salaire brut annuel — vous <small>(certificat de rémunération)</small></span>
+            <span>Salaire brut annuel — vous</span>
             <input type="number" name="salaireBrut1" min="0" step="100" placeholder="0">
           </label>
           <label class="field conjoint-only" hidden>
@@ -90,8 +146,16 @@
             <input type="number" name="pensionBrut2" min="0" step="100" placeholder="0">
           </label>
           <label class="field">
-            <span>Autres revenus nets <small>(indépendant, location…)</small></span>
-            <input type="number" name="autresRevenusNets" step="100" placeholder="0">
+            <span>Bénéfice net indépendant / libéral — vous</span>
+            <input type="number" name="beneficeIndependant1" step="100" placeholder="0">
+          </label>
+          <label class="field conjoint-only" hidden>
+            <span>Bénéfice net indépendant — conjoint</span>
+            <input type="number" name="beneficeIndependant2" step="100" placeholder="0">
+          </label>
+          <label class="field" id="row-cotis-indep" hidden>
+            <span>Cotisations sociales d'indépendant payées (CCSS)</span>
+            <input type="number" name="cotisationsIndependant" min="0" step="100" placeholder="0">
           </label>
           <label class="field">
             <span>Dividendes bruts perçus <small>(exemption 50 %)</small></span>
@@ -102,21 +166,25 @@
             <input type="number" name="interetsRecus" min="0" step="50" placeholder="0">
           </label>
           <label class="field">
-            <span>Cotisations sociales <small>(laisser vide = estimation 11,05 %)</small></span>
+            <span>Autres revenus nets</span>
+            <input type="number" name="autresRevenusNets" step="100" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Cotisations sociales retenues <small>(vide = estimation)</small></span>
             <input type="number" name="cotisationsOverride" min="0" step="50" placeholder="auto">
           </label>
           <label class="field">
-            <span>Impôt déjà retenu à la source en 2025 <small>(fiches de salaire)</small></span>
+            <span>Impôt déjà retenu à la source <small>(certificats)</small></span>
             <input type="number" name="impotsRetenus" min="0" step="50" placeholder="0">
           </label>
         </div>
       </section>
 
       <section class="card" id="sec-frais">
-        <h2><span class="step">3</span> Frais professionnels</h2>
+        <h2><span class="step">4</span> Frais professionnels</h2>
         <div class="grid">
           <label class="field">
-            <span>Distance domicile–travail (unités = km) — vous</span>
+            <span>Distance domicile–travail (km) — vous</span>
             <input type="number" name="kmUnites1" min="0" max="99" placeholder="0">
           </label>
           <label class="field conjoint-only" hidden>
@@ -132,11 +200,11 @@
             <input type="number" name="fraisReels2" min="0" step="50" placeholder="0">
           </label>
         </div>
-        <p class="hint">Frais réels : outils, vêtements professionnels spécifiques, cotisations syndicales, formation continue… Ils ne sont retenus que s'ils dépassent le forfait de 540 €.</p>
+        <p class="hint">Frais réels : outils, vêtements professionnels spécifiques, cotisations syndicales, formation continue… retenus seulement au-delà du forfait de 540 €.</p>
       </section>
 
       <section class="card" id="sec-ds">
-        <h2><span class="step">4</span> Dépenses spéciales <small>(les grands leviers d'optimisation)</small></h2>
+        <h2><span class="step">5</span> Dépenses spéciales <small>(les grands leviers)</small></h2>
         <div class="grid">
           <label class="field">
             <span>Prévoyance-vieillesse (art. 111bis) — vous <small id="cap-prev1"></small></span>
@@ -147,11 +215,11 @@
             <input type="number" name="prevoyance2" min="0" step="50" placeholder="0">
           </label>
           <label class="field">
-            <span>Primes d'assurances (vie, décès, RC, maladie…) <small id="cap-ass"></small></span>
+            <span>Primes d'assurances (vie, décès, RC, santé…) <small id="cap-ass"></small></span>
             <input type="number" name="assurances" min="0" step="50" placeholder="0">
           </label>
           <label class="field">
-            <span>Intérêts de prêts personnels / crédit conso <small>(même plafond)</small></span>
+            <span>Intérêts de prêts personnels <small>(même plafond)</small></span>
             <input type="number" name="interetsDebiteurs" min="0" step="50" placeholder="0">
           </label>
           <label class="field">
@@ -163,17 +231,17 @@
             <input type="number" name="dons" min="0" step="10" placeholder="0">
           </label>
           <label class="field">
-            <span>Pension alimentaire versée à un ex-conjoint <small>(max 24 000 €)</small></span>
+            <span>Pension alimentaire à un ex-conjoint <small>(max 24 000 €)</small></span>
             <input type="number" name="pensionAlimentaire" min="0" step="100" placeholder="0">
           </label>
         </div>
       </section>
 
       <section class="card" id="sec-logement">
-        <h2><span class="step">5</span> Logement</h2>
+        <h2><span class="step">6</span> Logement &amp; immobilier</h2>
         <div class="grid">
           <label class="field">
-            <span>Intérêts hypothécaires payés — habitation principale</span>
+            <span>Intérêts hypothécaires — habitation principale</span>
             <input type="number" name="interetsHypotheque" min="0" step="100" placeholder="0">
           </label>
           <label class="field">
@@ -186,13 +254,62 @@
             </select>
           </label>
         </div>
+        <details class="subsection">
+          <summary>Bien(s) mis en location</summary>
+          <div class="grid">
+            <label class="field">
+              <span>Loyers bruts encaissés</span>
+              <input type="number" name="location_loyersBruts" min="0" step="100" placeholder="0">
+            </label>
+            <label class="field">
+              <span>Intérêts de l'emprunt locatif <small>(déductibles sans plafond)</small></span>
+              <input type="number" name="location_interetsEmprunt" min="0" step="100" placeholder="0">
+            </label>
+            <label class="field">
+              <span>Frais d'entretien et de réparation</span>
+              <input type="number" name="location_fraisEntretien" min="0" step="100" placeholder="0">
+            </label>
+            <label class="field">
+              <span>Assurances, charges non récupérées, gérance</span>
+              <input type="number" name="location_chargesAssurances" min="0" step="100" placeholder="0">
+            </label>
+            <label class="field">
+              <span>Valeur de la construction <small>(hors terrain, pour l'amortissement)</small></span>
+              <input type="number" name="location_valeurConstruction" min="0" step="1000" placeholder="0">
+            </label>
+            <label class="field">
+              <span>Année d'achèvement du bâtiment</span>
+              <input type="number" name="location_anneeAchevement" min="1900" max="2026" placeholder="ex. 2010">
+            </label>
+          </div>
+          <p class="hint" id="hint-amortissement"></p>
+        </details>
+      </section>
+
+      <section class="card" id="sec-pv">
+        <h2><span class="step">7</span> Plus-values</h2>
+        <div class="grid">
+          <label class="field">
+            <span>Bénéfice de spéculation <small>(cession ≤ 2 ans — plein tarif)</small></span>
+            <input type="number" name="pvSpeculation" step="100" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Plus-value de cession long terme <small>(immobilier &gt; 2 ans — demi-taux)</small></span>
+            <input type="number" name="pvLongTerme" min="0" step="100" placeholder="0">
+          </label>
+          <label class="field span2" id="row-pv-abattement" hidden>
+            <span>Abattement décennal restant <small id="cap-pv"></small></span>
+            <input type="number" name="pvAbattementRestant" min="0" step="1000" placeholder="auto (maximum)">
+          </label>
+        </div>
+        <p class="hint">La résidence principale est exonérée. L'abattement décennal (50 000 €, 100 000 € pour un couple) se reconstitue tous les 10 ans.</p>
       </section>
 
       <section class="card" id="sec-ce">
-        <h2><span class="step">6</span> Charges extraordinaires</h2>
+        <h2><span class="step">8</span> Charges extraordinaires</h2>
         <div class="grid">
           <label class="field">
-            <span>Frais de garde d'enfants / domesticité / aides &amp; soins <small>(max 5 400 €)</small></span>
+            <span>Garde d'enfants / domesticité / aides &amp; soins <small>(max 5 400 €)</small></span>
             <input type="number" name="fraisGardeDomesticite" min="0" step="100" placeholder="0">
           </label>
           <label class="field">
@@ -208,16 +325,16 @@
             <input type="number" name="allocationsEnfant" min="0" step="100" placeholder="0">
           </label>
         </div>
-        <p class="hint">Les « autres charges » ne sont déductibles que pour la part dépassant la charge normale (2 à 10 % du revenu selon situation) — calculé automatiquement.</p>
+        <p class="hint">Les « autres charges » ne comptent qu'au-delà de la charge normale (2 à 10 % du revenu) — calculée automatiquement.</p>
       </section>
     </form>
 
     <!-- ================= Résultats ================= -->
     <aside class="results-col">
-      <div class="card result-card" id="result-main">
+      <div class="card result-card" id="result-main" aria-live="polite">
         <div class="result-headline">
           <div>
-            <span class="label">Impôt dû 2025</span>
+            <span class="label" id="out-impot-label">Impôt dû 2025</span>
             <span class="amount" id="out-impot">0 €</span>
           </div>
           <div class="badge-classe" id="out-classe">Classe 1</div>
@@ -237,6 +354,8 @@
         </details>
       </div>
 
+      <div class="card warn-card" id="card-assimilation" hidden></div>
+
       <div class="card opt-card">
         <h2>💡 Optimisation fiscale</h2>
         <p class="opt-total" id="opt-total" hidden></p>
@@ -246,28 +365,73 @@
         <div id="opt-couple" hidden></div>
       </div>
 
+      <div class="card action-card" id="card-avant3112" hidden>
+        <h2>⏳ À faire avant le 31 décembre</h2>
+        <p id="avant3112-text"></p>
+        <button type="button" class="btn subtle" id="btn-ics">📅 Ajouter les rappels à mon calendrier (.ics)</button>
+      </div>
+
+      <div class="card scenarios-card">
+        <h2>🗂 Scénarios</h2>
+        <div class="scenario-actions">
+          <input type="text" id="scenario-name" placeholder="Nom du scénario (ex. avec prévoyance)" maxlength="40">
+          <button type="button" class="btn subtle" id="btn-scenario-save">Enregistrer</button>
+        </div>
+        <table class="scenario-table" id="scenario-table" hidden></table>
+        <p class="muted" id="scenario-empty">Enregistrez la situation actuelle pour comparer plusieurs stratégies (avec/sans prévoyance, mariage, autre année…).</p>
+      </div>
+
+      <div class="card m100-card">
+        <details id="m100-details">
+          <summary><strong>📋 Guide de recopie — modèle 100</strong></summary>
+          <p class="hint">Rubriques à remplir dans votre déclaration d'après vos saisies (pages du formulaire officiel — à vérifier sur le millésime de l'année).</p>
+          <table class="detail-table" id="m100-table"></table>
+          <h3 class="sub-h">Pièces à joindre</h3>
+          <ul class="pieces" id="m100-pieces"></ul>
+        </details>
+      </div>
+
       <div class="card tips-card">
         <details>
           <summary><strong>Autres pistes d'optimisation (hors déclaration)</strong></summary>
           <ul class="tips">
-            <li><strong>Prévoyance 2026 :</strong> le plafond de l'art. 111bis passe de 3 200 € à <strong>4 500 €</strong> — ajustez vos versements dès janvier 2026.</li>
-            <li><strong>Chèques-repas :</strong> avantage exonéré jusqu'à 10,80 € par jour travaillé (part patronale) — à négocier avec l'employeur.</li>
-            <li><strong>Prime participative :</strong> exonérée à 50 %, dans la limite de 25 % de votre rémunération brute annuelle.</li>
-            <li><strong>Régime des impatriés :</strong> prime d'impatriation exonérée à 50 % (max 30 % du salaire) pour les salariés recrutés à l'étranger.</li>
-            <li><strong>Intérêts d'épargne :</strong> la retenue libératoire de 20 % (RELIBI) est souvent plus avantageuse que le barème — les intérêts ≤ 250 € par banque sont exonérés.</li>
-            <li><strong>Plus-values immobilières :</strong> après 5 ans de détention, imposition au demi-taux global ; la résidence principale est exonérée.</li>
-            <li><strong>Remise de la déclaration :</strong> même non obligatoire, elle est souvent avantageuse (déductions non prises en compte à la source) — délai : 31 décembre 2026 via MyGuichet.lu.</li>
+            <li><strong>Prévoyance 2026 :</strong> plafond art. 111bis relevé à <strong>4 500 €</strong> (3 200 € en 2025) — ajustez vos versements dès janvier.</li>
+            <li><strong>Réforme 2026 :</strong> assurances déductibles jusqu'à <strong>900 €</strong>/personne (672 € en 2025) et épargne-logement <strong>1 500 €</strong> (18-40 ans) / 900 €.</li>
+            <li><strong>Chèques-repas :</strong> avantage exonéré jusqu'à 10,80 € par jour travaillé — à négocier avec l'employeur.</li>
+            <li><strong>Prime participative :</strong> exonérée à 50 %, dans la limite de 25 % de la rémunération brute annuelle.</li>
+            <li><strong>Régime des impatriés :</strong> prime d'impatriation exonérée à 50 % (max 30 % du salaire).</li>
+            <li><strong>Intérêts d'épargne :</strong> retenue libératoire de 20 % (RELIBI) souvent plus avantageuse que le barème ; intérêts ≤ 250 € par banque exonérés.</li>
+            <li><strong>Amortissement accéléré :</strong> 4 %/an sur les logements locatifs achevés depuis moins de 5 ans.</li>
+            <li><strong>Délai :</strong> la déclaration se remet pour le 31 décembre de l'année suivante via MyGuichet.lu — souvent avantageuse même quand elle n'est pas obligatoire.</li>
           </ul>
         </details>
       </div>
 
       <p class="disclaimer">
-        Outil indicatif basé sur les paramètres officiels de l'année d'imposition 2025
-        (barème art. 118 LIR, plafonds ACD). Il ne remplace ni le bulletin d'imposition de
-        l'Administration des contributions directes, ni un conseil professionnel.
+        Outil indicatif fondé sur les paramètres officiels (ACD). Les paramètres 2026 sont provisoires
+        (barème non encore indexé). Il ne remplace ni le bulletin d'imposition, ni un conseil
+        professionnel. Vos données restent dans votre navigateur.
       </p>
     </aside>
   </main>
+
+  <!-- ============ Dialogue : coller un certificat ============ -->
+  <dialog id="dlg-certificat">
+    <form method="dialog" class="dlg-inner">
+      <h2>Pré-remplir depuis un certificat de rémunération</h2>
+      <p class="hint">Ouvrez le PDF de votre certificat annuel, sélectionnez tout le texte (Ctrl+A, Ctrl+C) et collez-le ci-dessous. Les montants reconnus (salaire brut, impôt retenu, cotisations, crédits d'impôt) seront reportés dans le formulaire.</p>
+      <textarea id="certificat-text" rows="10" placeholder="Collez ici le texte du certificat…"></textarea>
+      <label class="field checkbox" id="row-certificat-cible" hidden>
+        <input type="checkbox" id="certificat-conjoint">
+        <span>Ce certificat concerne le conjoint</span>
+      </label>
+      <p class="cert-result" id="certificat-result"></p>
+      <div class="dlg-actions">
+        <button type="button" class="btn ghost" id="btn-certificat-annuler">Fermer</button>
+        <button type="button" class="btn" id="btn-certificat-analyser">Analyser et reporter</button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="js/tax-engine.js"></script>
   <script src="js/app.js"></script>
