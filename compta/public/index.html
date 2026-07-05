@@ -5,9 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Compta.be — Comptabilité pour indépendant belge</title>
   <link rel="stylesheet" href="css/app.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧾</text></svg>">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="theme-color" content="#101828">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
+  <header class="topbar">
+    <button class="burger" id="burger" aria-label="Menu">☰</button>
+    <div class="topbar-brand">🧾 Compta<b>.be</b></div>
+  </header>
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
   <div class="layout">
     <aside class="sidebar">
       <div class="brand">🧾 <span>Compta<b>.be</b></span></div>

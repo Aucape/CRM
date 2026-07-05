@@ -37,3 +37,22 @@ async function route() {
 
 window.addEventListener('hashchange', route);
 window.addEventListener('DOMContentLoaded', route);
+
+// ---- Menu mobile -----------------------------------------------------------
+const sidebar = document.querySelector('.sidebar');
+const backdrop = document.getElementById('sidebar-backdrop');
+function closeMenu() {
+  sidebar.classList.remove('open');
+  backdrop.classList.remove('visible');
+}
+document.getElementById('burger').addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  backdrop.classList.toggle('visible', sidebar.classList.contains('open'));
+});
+backdrop.addEventListener('click', closeMenu);
+document.querySelectorAll('#nav a').forEach((a) => a.addEventListener('click', closeMenu));
+
+// ---- PWA : installable sur l'écran d'accueil --------------------------------
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => { /* hors ligne indisponible */ });
+}

@@ -30,6 +30,22 @@ body {
 
 .layout { display: flex; min-height: 100vh; }
 
+/* ---- Barre supérieure mobile ---- */
+.topbar {
+  display: none; position: sticky; top: 0; z-index: 80;
+  background: var(--sidebar-bg); color: #fff; padding: 10px 14px;
+  align-items: center; gap: 12px;
+}
+.topbar .burger {
+  background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; padding: 4px 8px;
+}
+.topbar .topbar-brand { font-size: 16px; font-weight: 700; }
+.topbar .topbar-brand b { color: #60a5fa; }
+.sidebar-backdrop {
+  display: none; position: fixed; inset: 0; background: rgba(16,24,40,.5); z-index: 89;
+}
+.sidebar-backdrop.visible { display: block; }
+
 /* ---- Sidebar ---- */
 .sidebar {
   width: 230px; flex-shrink: 0; background: var(--sidebar-bg); color: var(--sidebar-text);
@@ -67,6 +83,29 @@ body {
 .grid-4 { grid-template-columns: repeat(4, 1fr); }
 @media (max-width: 1000px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 640px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } .main { padding: 16px; } }
+
+/* ---- Mobile : sidebar escamotable + tableaux défilables ---- */
+@media (max-width: 900px) {
+  body { display: flex; flex-direction: column; min-height: 100vh; }
+  .topbar { display: flex; }
+  .layout { display: block; }
+  .sidebar {
+    position: fixed; top: 0; left: 0; height: 100vh; z-index: 90;
+    transform: translateX(-105%); transition: transform .22s ease;
+    box-shadow: 4px 0 24px rgba(0,0,0,.3); width: 260px;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .main { max-width: 100%; padding: 16px 14px; }
+  .card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .page-header h1 { font-size: 18px; }
+  .header-actions { width: 100%; }
+  .btn { padding: 9px 14px; }             /* cibles tactiles plus grandes */
+  input, select, textarea { font-size: 16px; } /* évite le zoom auto iOS */
+  .modal-backdrop { padding: 12px 8px; }
+  .modal { padding: 16px 14px; }
+  .stat .value { font-size: 19px; }
+  .chart-plot { height: 150px; }
+}
 
 /* ---- Stat tiles ---- */
 .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
@@ -173,6 +212,8 @@ textarea { resize: vertical; min-height: 60px; }
 .progress > div { height: 100%; background: var(--series-2); border-radius: 999px; }
 .progress > div.warn { background: var(--orange); }
 .progress > div.over { background: var(--red); }
+.lines-editor { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.lines-editor table { min-width: 540px; }
 .lines-editor table td { padding: 4px 4px; border-bottom: none; }
 .lines-editor input, .lines-editor select { padding: 6px 8px; font-size: 13px; }
 .totals-box { text-align: right; margin-top: 10px; font-size: 14px; }
