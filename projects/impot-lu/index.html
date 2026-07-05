@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Déclaration d'impôt Luxembourg 2025 — Simulateur & Optimisation</title>
+  <meta name="description" content="Simulez votre déclaration d'impôt luxembourgeoise (année 2025) et découvrez toutes les déductions pour maximiser votre gain fiscal.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🇱🇺</text></svg>">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand">
+        <span class="brand-flag" aria-hidden="true"><i></i><i></i><i></i></span>
+        <div>
+          <h1>Simulateur d'impôt Luxembourg</h1>
+          <p>Année d'imposition 2025 · déclaration modèle 100 (à remettre en 2026)</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button type="button" class="btn ghost" id="btn-reset">Réinitialiser</button>
+        <button type="button" class="btn" id="btn-print">Imprimer le récapitulatif</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap layout">
+    <!-- ================= Formulaire ================= -->
+    <form id="form" class="form-col" autocomplete="off">
+
+      <section class="card" id="sec-situation">
+        <h2><span class="step">1</span> Situation familiale</h2>
+        <div class="grid">
+          <label class="field span2">
+            <span>État civil au 1er janvier 2025</span>
+            <select name="statut">
+              <option value="celibataire">Célibataire</option>
+              <option value="marie">Marié·e (imposition collective)</option>
+              <option value="pacs">Partenariat (PACS) déclaré</option>
+              <option value="divorce">Divorcé·e / séparé·e</option>
+              <option value="veuf">Veuf / veuve</option>
+            </select>
+          </label>
+          <label class="field checkbox span2" id="row-pacs" hidden>
+            <input type="checkbox" name="pacsDeclarationCommune" checked>
+            <span>Demande d'imposition collective (partenariat existant toute l'année, domicile commun)</span>
+          </label>
+          <label class="field checkbox span2" id="row-transition" hidden>
+            <input type="checkbox" name="transitionMoins3Ans">
+            <span>Divorce / veuvage il y a moins de 3 ans (maintien transitoire de la classe 2)</span>
+          </label>
+          <label class="field">
+            <span>Votre âge</span>
+            <input type="number" name="age" min="0" max="120" placeholder="35">
+          </label>
+          <label class="field" id="row-age-conjoint" hidden>
+            <span>Âge du conjoint / partenaire</span>
+            <input type="number" name="ageConjoint" min="0" max="120" placeholder="35">
+          </label>
+          <label class="field">
+            <span>Enfants dans le ménage <small>(modération d'impôt)</small></span>
+            <input type="number" name="enfants" min="0" max="12" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Enfants hors ménage <small>(que vous entretenez)</small></span>
+            <input type="number" name="enfantsHorsMenage" min="0" max="12" placeholder="0">
+          </label>
+        </div>
+        <p class="hint" id="classe-hint"></p>
+      </section>
+
+      <section class="card" id="sec-revenus">
+        <h2><span class="step">2</span> Revenus 2025</h2>
+        <div class="grid">
+          <label class="field">
+            <span>Salaire brut annuel — vous <small>(certificat de rémunération)</small></span>
+            <input type="number" name="salaireBrut1" min="0" step="100" placeholder="0">
+          </label>
+          <label class="field conjoint-only" hidden>
+            <span>Salaire brut annuel — conjoint</span>
+            <input type="number" name="salaireBrut2" min="0" step="100" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Pension brute annuelle — vous</span>
+            <input type="number" name="pensionBrut1" min="0" step="100" placeholder="0">
+          </label>
+          <label class="field conjoint-only" hidden>
+            <span>Pension brute annuelle — conjoint</span>
+            <input type="number" name="pensionBrut2" min="0" step="100" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Autres revenus nets <small>(indépendant, location…)</small></span>
+            <input type="number" name="autresRevenusNets" step="100" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Dividendes bruts perçus <small>(exemption 50 %)</small></span>
+            <input type="number" name="dividendes" min="0" step="50" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Intérêts perçus non soumis à la retenue de 20 %</span>
+            <input type="number" name="interetsRecus" min="0" step="50" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Cotisations sociales <small>(laisser vide = estimation 11,05 %)</small></span>
+            <input type="number" name="cotisationsOverride" min="0" step="50" placeholder="auto">
+          </label>
+          <label class="field">
+            <span>Impôt déjà retenu à la source en 2025 <small>(fiches de salaire)</small></span>
+            <input type="number" name="impotsRetenus" min="0" step="50" placeholder="0">
+          </label>
+        </div>
+      </section>
+
+      <section class="card" id="sec-frais">
+        <h2><span class="step">3</span> Frais professionnels</h2>
+        <div class="grid">
+          <label class="field">
+            <span>Distance domicile–travail (unités = km) — vous</span>
+            <input type="number" name="kmUnites1" min="0" max="99" placeholder="0">
+          </label>
+          <label class="field conjoint-only" hidden>
+            <span>Distance domicile–travail — conjoint</span>
+            <input type="number" name="kmUnites2" min="0" max="99" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Frais d'obtention réels — vous <small>(sinon forfait 540 €)</small></span>
+            <input type="number" name="fraisReels1" min="0" step="50" placeholder="0">
+          </label>
+          <label class="field conjoint-only" hidden>
+            <span>Frais d'obtention réels — conjoint</span>
+            <input type="number" name="fraisReels2" min="0" step="50" placeholder="0">
+          </label>
+        </div>
+        <p class="hint">Frais réels : outils, vêtements professionnels spécifiques, cotisations syndicales, formation continue… Ils ne sont retenus que s'ils dépassent le forfait de 540 €.</p>
+      </section>
+
+      <section class="card" id="sec-ds">
+        <h2><span class="step">4</span> Dépenses spéciales <small>(les grands leviers d'optimisation)</small></h2>
+        <div class="grid">
+          <label class="field">
+            <span>Prévoyance-vieillesse (art. 111bis) — vous <small id="cap-prev1"></small></span>
+            <input type="number" name="prevoyance1" min="0" step="50" placeholder="0">
+          </label>
+          <label class="field conjoint-only" hidden>
+            <span>Prévoyance-vieillesse — conjoint</span>
+            <input type="number" name="prevoyance2" min="0" step="50" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Primes d'assurances (vie, décès, RC, maladie…) <small id="cap-ass"></small></span>
+            <input type="number" name="assurances" min="0" step="50" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Intérêts de prêts personnels / crédit conso <small>(même plafond)</small></span>
+            <input type="number" name="interetsDebiteurs" min="0" step="50" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Épargne-logement <small id="cap-el"></small></span>
+            <input type="number" name="epargneLogement" min="0" step="50" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Dons à des organismes agréés <small>(min. 120 €)</small></span>
+            <input type="number" name="dons" min="0" step="10" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Pension alimentaire versée à un ex-conjoint <small>(max 24 000 €)</small></span>
+            <input type="number" name="pensionAlimentaire" min="0" step="100" placeholder="0">
+          </label>
+        </div>
+      </section>
+
+      <section class="card" id="sec-logement">
+        <h2><span class="step">5</span> Logement</h2>
+        <div class="grid">
+          <label class="field">
+            <span>Intérêts hypothécaires payés — habitation principale</span>
+            <input type="number" name="interetsHypotheque" min="0" step="100" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Mise à disposition du logement</span>
+            <select name="hypoDisponibilite">
+              <option value="apres2022">Après le 31/12/2022 (déduction intégrale)</option>
+              <option value="de2019a2022">2019 – 2022 (4 000 € / personne)</option>
+              <option value="de2014a2018">2014 – 2018 (3 000 € / personne)</option>
+              <option value="avant2014">Avant 2014 (2 000 € / personne)</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="card" id="sec-ce">
+        <h2><span class="step">6</span> Charges extraordinaires</h2>
+        <div class="grid">
+          <label class="field">
+            <span>Frais de garde d'enfants / domesticité / aides &amp; soins <small>(max 5 400 €)</small></span>
+            <input type="number" name="fraisGardeDomesticite" min="0" step="100" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Entretien d'enfants hors ménage <small>(max 4 422 € / enfant)</small></span>
+            <input type="number" name="entretienEnfantsHorsMenage" min="0" step="100" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Autres charges (frais médicaux non remboursés…)</span>
+            <input type="number" name="autresChargesExtraordinaires" min="0" step="100" placeholder="0">
+          </label>
+          <label class="field" id="row-allocations" hidden>
+            <span>Rentes alimentaires perçues pour l'enfant <small>(réduit le CIM)</small></span>
+            <input type="number" name="allocationsEnfant" min="0" step="100" placeholder="0">
+          </label>
+        </div>
+        <p class="hint">Les « autres charges » ne sont déductibles que pour la part dépassant la charge normale (2 à 10 % du revenu selon situation) — calculé automatiquement.</p>
+      </section>
+    </form>
+
+    <!-- ================= Résultats ================= -->
+    <aside class="results-col">
+      <div class="card result-card" id="result-main">
+        <div class="result-headline">
+          <div>
+            <span class="label">Impôt dû 2025</span>
+            <span class="amount" id="out-impot">0 €</span>
+          </div>
+          <div class="badge-classe" id="out-classe">Classe 1</div>
+        </div>
+        <div class="result-solde" id="out-solde-row" hidden>
+          <span id="out-solde-label"></span>
+          <strong id="out-solde"></strong>
+        </div>
+        <div class="rates">
+          <div><span>Taux moyen</span><strong id="out-taux-moyen">0 %</strong></div>
+          <div><span>Taux marginal</span><strong id="out-taux-marginal">0 %</strong></div>
+          <div><span>Revenu imposable</span><strong id="out-rimp">0 €</strong></div>
+        </div>
+        <details id="out-detail">
+          <summary>Détail du calcul</summary>
+          <table class="detail-table" id="out-detail-table"></table>
+        </details>
+      </div>
+
+      <div class="card opt-card">
+        <h2>💡 Optimisation fiscale</h2>
+        <p class="opt-total" id="opt-total" hidden></p>
+        <div id="opt-list" class="opt-list">
+          <p class="muted">Renseignez vos revenus pour voir vos gains potentiels.</p>
+        </div>
+        <div id="opt-couple" hidden></div>
+      </div>
+
+      <div class="card tips-card">
+        <details>
+          <summary><strong>Autres pistes d'optimisation (hors déclaration)</strong></summary>
+          <ul class="tips">
+            <li><strong>Prévoyance 2026 :</strong> le plafond de l'art. 111bis passe de 3 200 € à <strong>4 500 €</strong> — ajustez vos versements dès janvier 2026.</li>
+            <li><strong>Chèques-repas :</strong> avantage exonéré jusqu'à 10,80 € par jour travaillé (part patronale) — à négocier avec l'employeur.</li>
+            <li><strong>Prime participative :</strong> exonérée à 50 %, dans la limite de 25 % de votre rémunération brute annuelle.</li>
+            <li><strong>Régime des impatriés :</strong> prime d'impatriation exonérée à 50 % (max 30 % du salaire) pour les salariés recrutés à l'étranger.</li>
+            <li><strong>Intérêts d'épargne :</strong> la retenue libératoire de 20 % (RELIBI) est souvent plus avantageuse que le barème — les intérêts ≤ 250 € par banque sont exonérés.</li>
+            <li><strong>Plus-values immobilières :</strong> après 5 ans de détention, imposition au demi-taux global ; la résidence principale est exonérée.</li>
+            <li><strong>Remise de la déclaration :</strong> même non obligatoire, elle est souvent avantageuse (déductions non prises en compte à la source) — délai : 31 décembre 2026 via MyGuichet.lu.</li>
+          </ul>
+        </details>
+      </div>
+
+      <p class="disclaimer">
+        Outil indicatif basé sur les paramètres officiels de l'année d'imposition 2025
+        (barème art. 118 LIR, plafonds ACD). Il ne remplace ni le bulletin d'imposition de
+        l'Administration des contributions directes, ni un conseil professionnel.
+      </p>
+    </aside>
+  </main>
+
+  <script src="js/tax-engine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
