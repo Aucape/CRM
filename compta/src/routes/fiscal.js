@@ -177,11 +177,15 @@ router.get('/calendar', (req, res) => {
     events.push({ date: `${year}-03-31`, type: 'tva', label: `Listing clients ${year - 1}`, detail: 'Liste annuelle des clients assujettis belges (> 250 €) à déposer sur Intervat avant le 31 mars.' });
   }
 
+  if ((getSetting('tax_params').social_regime || 'belgique') !== 'etranger') {
+    events.push(
+      { date: `${year}-03-31`, type: 'social', label: 'Cotisations sociales T1', detail: 'Paiement à votre caisse d’assurances sociales avant la fin du trimestre.' },
+      { date: `${year}-06-30`, type: 'social', label: 'Cotisations sociales T2', detail: 'Paiement avant la fin du trimestre.' },
+      { date: `${year}-09-30`, type: 'social', label: 'Cotisations sociales T3', detail: 'Paiement avant la fin du trimestre.' },
+      { date: `${year}-12-31`, type: 'social', label: 'Cotisations sociales T4', detail: 'Paiement avant la fin du trimestre.' },
+    );
+  }
   events.push(
-    { date: `${year}-03-31`, type: 'social', label: 'Cotisations sociales T1', detail: 'Paiement à votre caisse d’assurances sociales avant la fin du trimestre.' },
-    { date: `${year}-06-30`, type: 'social', label: 'Cotisations sociales T2', detail: 'Paiement avant la fin du trimestre.' },
-    { date: `${year}-09-30`, type: 'social', label: 'Cotisations sociales T3', detail: 'Paiement avant la fin du trimestre.' },
-    { date: `${year}-12-31`, type: 'social', label: 'Cotisations sociales T4', detail: 'Paiement avant la fin du trimestre.' },
     { date: `${year}-04-10`, type: 'impot', label: 'Versement anticipé VA1', detail: 'Recommandé pour éviter la majoration d’impôt (sauf 3 premières années d’activité).' },
     { date: `${year}-07-10`, type: 'impot', label: 'Versement anticipé VA2', detail: '' },
     { date: `${year}-10-10`, type: 'impot', label: 'Versement anticipé VA3', detail: '' },

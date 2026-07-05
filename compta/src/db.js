@@ -197,6 +197,10 @@ const DEFAULT_SETTINGS = {
   // Paramètres fiscaux — année de revenus 2026 (modifiables dans Paramètres).
   tax_params: {
     year_label: 'Revenus 2026',
+    activity_status: 'principal',     // principal | complementaire
+    social_regime: 'belgique',        // belgique | etranger (salarié à l'étranger : pas de cotisations belges)
+    foreign_salary: 0,                // salaire étranger exonéré (imposable annuel) — réserve de progressivité
+    social_exempt_threshold: 1900,    // complémentaire : pas de cotisations sous ce revenu net annuel
     brackets: [
       { upTo: 16560, rate: 25 },
       { upTo: 29230, rate: 40 },

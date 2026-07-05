@@ -19,16 +19,52 @@ function progressiveTax(amount, brackets) {
   return tax;
 }
 
-/** Cotisations sociales annuelles sur base du revenu net (avant cotisations). */
+/**
+ * Cotisations sociales annuelles sur base du revenu net (avant cotisations).
+ * - À titre principal : minimum légal (revenu présumé).
+ * - Complémentaire : pas de minimum, exonéré sous le seuil.
+ * - Affilié à l'étranger (ex. salarié luxembourgeois) : rien en Belgique
+ *   (règlement UE 883/2004 — l'activité salariée détermine le pays d'affiliation).
+ */
 function socialContributions(netIncome, p) {
+  const status = p.activity_status || 'principal';
+  if ((p.social_regime || 'belgique') === 'etranger') {
+    return {
+      contributions: 0, admin_fees: 0, total: 0,
+      note: 'Affiliation sociale à l’étranger : aucune cotisation belge due sur cette activité.',
+    };
+  }
   const base = Math.max(Number(netIncome) || 0, 0);
+  if (status === 'complementaire') {
+    if (base < Number(p.social_exempt_threshold || 0)) {
+      return {
+        contributions: 0, admin_fees: 0, total: 0,
+        note: `Revenu sous le seuil d'exonération (${p.social_exempt_threshold} €) : pas de cotisations dues.`,
+      };
+    }
+    // Complémentaire : 20,5 % dès le premier euro, sans minimum légal.
+    let contrib = Math.min(base, p.social_cap_1) * (p.social_rate_1 / 100);
+    if (base > p.social_cap_1) {
+      contrib += (Math.min(base, p.social_cap_2) - p.social_cap_1) * (p.social_rate_2 / 100);
+    }
+    const adminFees = contrib * (p.social_admin_pct / 100);
+    return { contributions: round2(contrib), admin_fees: round2(adminFees), total: round2(contrib + adminFees), note: '' };
+  }
   const effectiveBase = Math.max(base, Number(p.social_min_income) || 0);
   let contrib = Math.min(effectiveBase, p.social_cap_1) * (p.social_rate_1 / 100);
   if (effectiveBase > p.social_cap_1) {
     contrib += (Math.min(effectiveBase, p.social_cap_2) - p.social_cap_1) * (p.social_rate_2 / 100);
   }
   const adminFees = contrib * (p.social_admin_pct / 100);
-  return { contributions: round2(contrib), admin_fees: round2(adminFees), total: round2(contrib + adminFees) };
+  return { contributions: round2(contrib), admin_fees: round2(adminFees), total: round2(contrib + adminFees), note: '' };
+}
+
+/** Taux marginal applicable à un niveau de revenu donné. */
+function marginalRate(income, brackets) {
+  for (const b of brackets) {
+    if (b.upTo == null || income <= Number(b.upTo)) return Number(b.rate);
+  }
+  return Number(brackets[brackets.length - 1].rate);
 }
 
 /** Amortissements de l'année pour toutes les immobilisations actives. */
@@ -95,9 +131,15 @@ function estimate(year) {
   const socialToDeduct = socialPaid > 0 ? 0 : social.total; // éviter la double déduction
   const taxable = Math.max(round2(netBeforeSocial - socialToDeduct), 0);
 
-  const grossTax = progressiveTax(taxable, p.brackets);
-  const taxFreeRelief = progressiveTax(Math.min(Number(p.tax_free_amount), taxable), p.brackets);
-  const stateTax = Math.max(round2(grossTax - taxFreeRelief), 0);
+  // Réserve de progressivité : un salaire étranger exonéré (ex. Luxembourg,
+  // convention BE-LU) ne se taxe pas en Belgique mais détermine le taux
+  // applicable aux revenus belges : impôt(total) × part belge / total.
+  const foreignSalary = Math.max(Number(p.foreign_salary) || 0, 0);
+  const totalIncome = taxable + foreignSalary;
+  const grossTax = progressiveTax(totalIncome, p.brackets);
+  const taxFreeRelief = progressiveTax(Math.min(Number(p.tax_free_amount), totalIncome), p.brackets);
+  const taxOnTotal = Math.max(grossTax - taxFreeRelief, 0);
+  const stateTax = totalIncome > 0 ? round2(taxOnTotal * (taxable / totalIncome)) : 0;
   const communalTax = round2(stateTax * (p.communal_tax_pct / 100));
   const totalTax = round2(stateTax + communalTax);
 
@@ -107,6 +149,10 @@ function estimate(year) {
   return {
     year: Number(year),
     params_label: p.year_label,
+    activity_status: p.activity_status || 'principal',
+    social_regime: p.social_regime || 'belgique',
+    foreign_salary: foreignSalary,
+    marginal_rate_pct: marginalRate(totalIncome, p.brackets),
     revenue,
     real_expenses: realExpenses,
     depreciation: depreciation.total,

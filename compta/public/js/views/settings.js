@@ -67,6 +67,31 @@ async function viewSettings(main) {
       </div>
       <div>
         <div class="card">
+          <h2>👤 Situation personnelle</h2>
+          <p class="hint">Détermine le calcul des cotisations sociales et la tranche d'imposition de vos revenus d'indépendant.</p>
+          <form id="form-status">
+            <div class="form-row">
+              <div><label>Statut d'indépendant</label><select name="activity_status">
+                <option value="principal" ${p.activity_status !== 'complementaire' ? 'selected' : ''}>À titre principal</option>
+                <option value="complementaire" ${p.activity_status === 'complementaire' ? 'selected' : ''}>Complémentaire (salarié par ailleurs)</option>
+              </select></div>
+              <div><label>Cotisations sociales</label><select name="social_regime">
+                <option value="belgique" ${p.social_regime !== 'etranger' ? 'selected' : ''}>Affilié en Belgique (caisse sociale)</option>
+                <option value="etranger" ${p.social_regime === 'etranger' ? 'selected' : ''}>Affilié à l'étranger (ex. salarié au Luxembourg)</option>
+              </select></div>
+            </div>
+            <div class="form-row">
+              <div><label>Salaire étranger exonéré (imposable annuel, €)</label>
+                <input name="foreign_salary" type="number" step="0.01" value="${p.foreign_salary || 0}">
+                <div class="hint">Salaire luxembourgeois (ou autre pays avec convention) : exonéré en Belgique mais compté pour déterminer votre <b>tranche d'imposition</b> (réserve de progressivité). Indiquez le montant imposable annuel.</div></div>
+              <div><label>Seuil d'exonération cotisations (complémentaire, €)</label>
+                <input name="social_exempt_threshold" type="number" step="0.01" value="${p.social_exempt_threshold || 1900}"></div>
+            </div>
+            <div class="hint" style="margin-top:6px">💡 Salarié dans un pays de l'UE + indépendant en Belgique : votre sécurité sociale relève du pays du salariat (règlement UE 883/2004) — sélectionnez « affilié à l'étranger » et aucune cotisation belge ne sera comptée. Une cotisation peut être due dans le pays d'affiliation (ex. CCSS au Luxembourg) : vérifiez avec votre caisse.</div>
+            <div class="modal-actions"><button type="submit" class="btn primary">Enregistrer</button></div>
+          </form>
+        </div>
+        <div class="card">
           <h2>📐 Barèmes fiscaux (${esc(p.year_label)})</h2>
           <p class="hint">Mis à jour chaque année par l'indexation. Adaptez-les si besoin — tous les calculs suivent.</p>
           <form id="form-tax">
@@ -133,6 +158,22 @@ async function viewSettings(main) {
     v.default_payment_days = Number(v.default_payment_days);
     await api('/settings', { method: 'PUT', body: { fiscal: v } });
     toast('Paramètres de facturation enregistrés.');
+  });
+  document.getElementById('form-status').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const v = formValues(e.target);
+    await api('/settings', {
+      method: 'PUT',
+      body: {
+        tax_params: {
+          activity_status: v.activity_status,
+          social_regime: v.social_regime,
+          foreign_salary: Number(v.foreign_salary) || 0,
+          social_exempt_threshold: Number(v.social_exempt_threshold) || 0,
+        },
+      },
+    });
+    toast('Situation personnelle enregistrée — les estimations sont recalculées.');
   });
   document.getElementById('form-tax').addEventListener('submit', async (e) => {
     e.preventDefault();

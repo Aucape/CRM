@@ -136,7 +136,7 @@ async function viewTaxes(main, params) {
         <div class="detail">État : ${fmt.eur(t.state_tax)} + commune : ${fmt.eur(t.communal_tax)}</div></div>
       <div class="stat"><div class="label">Cotisations sociales estimées</div>
         <div class="value">${fmt.eur(t.social_estimated.total)}</div>
-        <div class="detail">≈ ${fmt.eur(t.quarterly_social)} / trimestre</div></div>
+        <div class="detail">${t.social_regime === 'etranger' ? 'Affilié à l’étranger — rien en Belgique' : '≈ ' + fmt.eur(t.quarterly_social) + ' / trimestre'}</div></div>
       <div class="stat ${t.net_in_pocket >= 0 ? 'good' : 'bad'}"><div class="label">Net estimé en poche</div>
         <div class="value">${fmt.eur(t.net_in_pocket)}</div></div>
     </div>
@@ -152,8 +152,11 @@ async function viewTaxes(main, params) {
           <tr><td>Revenu net avant cotisations</td><td class="num"><b>${fmt.eur(t.net_before_social)}</b></td></tr>
           <tr><td>Cotisations sociales ${t.social_paid_encoded ? '(déjà encodées en dépenses : ' + fmt.eur(t.social_paid_encoded) + ')' : 'estimées'}</td>
             <td class="num">− ${fmt.eur(t.social_paid_encoded ? 0 : t.social_estimated.total)}</td></tr>
-          <tr><td>Revenu imposable</td><td class="num"><b>${fmt.eur(t.taxable)}</b></td></tr>
-          <tr><td>Impôt État (barème progressif, quotité exemptée déduite)</td><td class="num">${fmt.eur(t.state_tax)}</td></tr>
+          <tr><td>Revenu imposable (indépendant)</td><td class="num"><b>${fmt.eur(t.taxable)}</b></td></tr>
+          ${t.foreign_salary ? `<tr><td>Salaire étranger exonéré (réserve de progressivité)
+            <div class="muted" style="font-size:12px">Non taxé en Belgique, mais fixe la tranche : vos revenus d'indépendant sont taxés au taux marginal de <b>${fmt.pct(t.marginal_rate_pct)}</b>.</div></td>
+            <td class="num muted">${fmt.eur(t.foreign_salary)}</td></tr>` : ''}
+          <tr><td>Impôt État (barème progressif, quotité exemptée déduite${t.foreign_salary ? ', part belge' : ''})</td><td class="num">${fmt.eur(t.state_tax)}</td></tr>
           <tr><td>Additionnels communaux</td><td class="num">${fmt.eur(t.communal_tax)}</td></tr>
           <tr style="font-weight:700"><td>Impôt total estimé</td><td class="num">${fmt.eur(t.total_tax)}</td></tr>
         </tbody></table>
@@ -164,18 +167,21 @@ async function viewTaxes(main, params) {
           ${t.used_method === 'forfait' ? `
             <div class="coach"><span class="icon">💡</span><span>Vos frais réels (${fmt.eur(t.real_expenses)}) sont inférieurs au forfait légal (${fmt.eur(t.forfait_expenses)}). Le forfait est appliqué automatiquement — mais encodez quand même toutes vos dépenses : la TVA reste récupérable !</span></div>` : `
             <div class="coach"><span class="icon">✅</span><span>Vos frais réels dépassent le forfait : chaque dépense encodée réduit directement votre impôt.</span></div>`}
+          ${t.foreign_salary ? `<div class="coach"><span class="icon">🇱🇺</span><span>Votre salaire étranger de ${fmt.eur(t.foreign_salary)} place vos revenus d'indépendant dans la tranche à <b>${fmt.pct(t.marginal_rate_pct)}</b>. Chaque euro de dépense professionnelle encodée vous fait donc économiser ≈ ${fmt.pct(t.marginal_rate_pct)} d'impôt (+ additionnels communaux).</span></div>` : ''}
           <div class="coach"><span class="icon">📅</span><span>Pensez aux <b>versements anticipés</b> (≈ ${fmt.eur(t.prepayment_suggestion)} par trimestre) pour éviter la majoration d'impôt — sauf si vous êtes dans vos 3 premières années d'activité en personne physique.</span></div>
-          <div class="coach"><span class="icon">🛡️</span><span>Une <b>P.L.C.I.</b> (pension libre complémentaire) est déductible à 100 % et réduit aussi vos cotisations sociales — jusqu'à ±8,17 % de votre revenu net.</span></div>
+          ${t.social_regime !== 'etranger' ? `<div class="coach"><span class="icon">🛡️</span><span>Une <b>P.L.C.I.</b> (pension libre complémentaire) est déductible à 100 % et réduit aussi vos cotisations sociales — jusqu'à ±8,17 % de votre revenu net.</span></div>` : ''}
         </div>
         <div class="card">
           <h2>Cotisations sociales — détail</h2>
-          <table><tbody>
+          ${t.social_estimated.note ? `<div class="coach"><span class="icon">ℹ️</span><span>${esc(t.social_estimated.note)}</span></div>` : ''}
+          ${t.social_estimated.total > 0 ? `<table><tbody>
             <tr><td>Cotisations (20,5 % / 14,16 % par tranche)</td><td class="num">${fmt.eur(t.social_estimated.contributions)}</td></tr>
             <tr><td>Frais de gestion de la caisse</td><td class="num">${fmt.eur(t.social_estimated.admin_fees)}</td></tr>
             <tr style="font-weight:700"><td>Total annuel</td><td class="num">${fmt.eur(t.social_estimated.total)}</td></tr>
             <tr><td>Par trimestre</td><td class="num">${fmt.eur(t.quarterly_social)}</td></tr>
           </tbody></table>
-          <p class="hint">Ce sont des provisions : la régularisation définitive arrive ~2 ans plus tard, calculée sur le revenu réel de l'année.</p>
+          <p class="hint">Ce sont des provisions : la régularisation définitive arrive ~2 ans plus tard, calculée sur le revenu réel de l'année.</p>` : ''}
+          <p class="hint">Statut : <b>${t.activity_status === 'complementaire' ? 'indépendant complémentaire' : 'à titre principal'}</b> — modifiable dans Paramètres → Situation personnelle.</p>
         </div>
       </div>
     </div>`;
