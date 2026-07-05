@@ -14,6 +14,7 @@ import {
   IconeContacts,
   IconeDocument,
   IconeEcheance,
+  IconeFinances,
   IconeRecherche,
 } from "@/components/ui/icones";
 
@@ -30,6 +31,7 @@ const LIENS_DESKTOP = [
   { href: "/calendrier", libelle: "Calendrier", Icone: IconeCalendrier },
   { href: "/courses", libelle: "Courses", Icone: IconeCourses },
   { href: "/factures", libelle: "Factures", Icone: IconeFacture },
+  { href: "/finances", libelle: "Finances", Icone: IconeFinances },
   { href: "/echeances", libelle: "Échéances", Icone: IconeEcheance },
   { href: "/documents", libelle: "Documents", Icone: IconeDocument },
   { href: "/membres", libelle: "Membres", Icone: IconeMembres },

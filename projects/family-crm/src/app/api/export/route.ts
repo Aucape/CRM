@@ -24,6 +24,9 @@ export async function GET() {
     contacts,
     documents,
     parametres,
+    comptesBancaires,
+    transactions,
+    reglesCategories,
   ] = await Promise.all([
     db.membre.findMany(),
     db.utilisateur.findMany(),
@@ -37,6 +40,9 @@ export async function GET() {
     db.contact.findMany(),
     db.document.findMany(),
     db.parametre.findMany(),
+    db.compteBancaire.findMany(),
+    db.transaction.findMany(),
+    db.regleCategorie.findMany(),
   ]);
 
   const exportComplet = {
@@ -56,6 +62,9 @@ export async function GET() {
       contacts,
       documents,
       parametres,
+      comptesBancaires,
+      transactions,
+      reglesCategories,
     },
   };
 

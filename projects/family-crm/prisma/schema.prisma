@@ -117,6 +117,8 @@ model Paiement {
   statut       String    @default("A_PAYER") // A_PAYER | PAYE
   payeLe       DateTime?
 
+  transaction Transaction? // mouvement bancaire rapproché (module Finances)
+
   @@index([dateEcheance, statut])
 }
 
@@ -216,6 +218,60 @@ model Document {
   creeLe           DateTime  @default(now())
 
   @@index([dateExpiration])
+}
+
+// ------------------------------------------------------------------
+// Finances : comptes bancaires & transactions
+// ------------------------------------------------------------------
+
+// Compte bancaire du foyer. Les transactions arrivent par import CSV
+// (export de la banque) ou, en option, par synchronisation PSD2
+// (GoCardless Bank Account Data) si le compte a un externeId.
+model CompteBancaire {
+  id            String    @id @default(cuid())
+  nom           String // ex. « Compte commun Belfius »
+  iban          String?
+  banque        String    @default("AUTRE") // voir BANQUES dans constantes.ts
+  soldeCents    Int? // dernier solde connu
+  soldeDate     DateTime?
+  // Synchronisation PSD2 optionnelle (GoCardless Bank Account Data).
+  externeId     String? // id du compte chez l'agrégateur
+  requisitionId String? // id de la réquisition (consentement)
+  creeLe        DateTime  @default(now())
+
+  transactions Transaction[]
+}
+
+// Mouvement bancaire. montantCents négatif = dépense.
+model Transaction {
+  id               String         @id @default(cuid())
+  compte           CompteBancaire @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  compteId         String
+  date             DateTime // date valeur
+  montantCents     Int
+  contrepartie     String? // nom de la contrepartie
+  ibanContrepartie String?
+  communication    String?
+  categorie        String         @default("A_TRIER") // voir CATEGORIES_TRANSACTION
+  // Rapprochement : occurrence de facture réglée par cette transaction.
+  paiement         Paiement?      @relation(fields: [paiementId], references: [id], onDelete: SetNull)
+  paiementId       String?        @unique
+  // Empreinte anti-doublon (compte + date + montant + libellés), pour
+  // pouvoir réimporter un CSV qui chevauche un import précédent.
+  empreinte        String         @unique
+  importeLe        DateTime       @default(now())
+
+  @@index([compteId, date])
+  @@index([categorie, date])
+}
+
+// Règle de catégorisation automatique : si la contrepartie ou la
+// communication contient le mot-clé, la catégorie est appliquée.
+model RegleCategorie {
+  id        String   @id @default(cuid())
+  motCle    String
+  categorie String
+  creeLe    DateTime @default(now())
 }
 
 // ------------------------------------------------------------------

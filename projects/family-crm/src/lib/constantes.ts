@@ -220,6 +220,69 @@ export const ALERTE_DEFAUT_PAR_TYPE: Record<TypeDocument, number> = {
 };
 
 // ------------------------------------------------------------------
+// Finances : banques belges & catégories de transactions
+// ------------------------------------------------------------------
+
+export const BANQUES = [
+  "BELFIUS",
+  "KBC",
+  "BNP_FORTIS",
+  "ING",
+  "ARGENTA",
+  "CRELAN",
+  "BEOBANK",
+  "AUTRE",
+] as const;
+export const zBanque = z.enum(BANQUES);
+export type Banque = z.infer<typeof zBanque>;
+
+export const LIBELLES_BANQUE: Record<Banque, string> = {
+  BELFIUS: "Belfius",
+  KBC: "KBC / CBC",
+  BNP_FORTIS: "BNP Paribas Fortis",
+  ING: "ING",
+  ARGENTA: "Argenta",
+  CRELAN: "Crelan",
+  BEOBANK: "Beobank",
+  AUTRE: "Autre",
+};
+
+// Catégories de transactions : celles des factures + celles du
+// quotidien. A_TRIER = pas encore catégorisée.
+export const CATEGORIES_TRANSACTION = [
+  "A_TRIER",
+  ...CATEGORIES_FACTURE.filter((c) => c !== "AUTRE"),
+  "COURSES",
+  "RESTO_SORTIES",
+  "SHOPPING",
+  "LOISIRS_VACANCES",
+  "ENFANTS",
+  "RETRAIT_CASH",
+  "VIREMENT_INTERNE",
+  "REVENUS",
+  "AUTRE",
+] as const;
+export type CategorieTransaction = (typeof CATEGORIES_TRANSACTION)[number];
+export const zCategorieTransaction = z.enum(CATEGORIES_TRANSACTION);
+
+export const LIBELLES_CATEGORIE_TRANSACTION: Record<CategorieTransaction, string> = {
+  A_TRIER: "À trier",
+  ...LIBELLES_CATEGORIE_FACTURE,
+  COURSES: "Courses",
+  RESTO_SORTIES: "Restos & sorties",
+  SHOPPING: "Shopping",
+  LOISIRS_VACANCES: "Loisirs & vacances",
+  ENFANTS: "Enfants",
+  RETRAIT_CASH: "Retraits cash",
+  VIREMENT_INTERNE: "Virements internes",
+  REVENUS: "Revenus",
+  AUTRE: "Autre",
+};
+
+/** Catégories exclues des totaux de dépenses (ni dépense, ni revenu réel). */
+export const CATEGORIES_NEUTRES: CategorieTransaction[] = ["VIREMENT_INTERNE"];
+
+// ------------------------------------------------------------------
 // Couleurs proposées pour les membres (calendrier)
 // ------------------------------------------------------------------
 

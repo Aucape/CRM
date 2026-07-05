@@ -74,6 +74,20 @@ selon le type (Kids-ID : 90 j).
 **Échéances (`/echeances`)** — vue exhaustive (en retard / bientôt / plus
 tard / faites) + création d'échéances manuelles libres.
 
+**Finances (`/finances`)** — le seed contient un compte Belfius avec un mois
+de transactions catégorisées. La vue mensuelle montre dépenses/revenus, la
+répartition par catégorie et la comparaison au budget récurrent des factures.
+*Import bancaire* : exportez un CSV depuis votre banque (Belfius, KBC, ING,
+BNP Fortis…), ouvrez `/finances/import`, vérifiez le mapping de colonnes
+deviné automatiquement, importez : doublons ignorés (ré-import sans risque),
+catégorisation par vos règles (★ sur une transaction), et **rapprochement
+automatique** — une dépense qui correspond à une facture « à payer » (même
+montant, échéance à ±7 jours) marque la facture payée et clôt son échéance.
+*Connexion bancaire (PSD2, optionnelle)* : ajoutez des clés GoCardless Bank
+Account Data gratuites dans `.env` (voir `/finances/connexion`) pour relier
+vos comptes et synchroniser transactions + soldes sans CSV. Sans clés, tout
+fonctionne en local.
+
 **Recherche (`/recherche`)** — un mot (min. 2 lettres) cherche dans tous les
 modules, insensible aux accents : essayez « emma » ou « engie ».
 

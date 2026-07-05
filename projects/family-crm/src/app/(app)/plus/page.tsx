@@ -7,12 +7,14 @@ import {
   IconeDocument,
   IconeEcheance,
   IconeExport,
+  IconeFinances,
   IconeMembres,
   IconeRecherche,
 } from "@/components/ui/icones";
 
 const LIENS = [
   { href: "/echeances", libelle: "Échéances", detail: "Toutes les dates à ne pas rater", Icone: IconeEcheance },
+  { href: "/finances", libelle: "Finances", detail: "Comptes, dépenses, import bancaire", Icone: IconeFinances },
   { href: "/documents", libelle: "Documents", detail: "eID, Kids-ID, assurances, impôts…", Icone: IconeDocument },
   { href: "/membres", libelle: "Membres", detail: "Profils de la famille", Icone: IconeMembres },
   { href: "/contacts", libelle: "Contacts", detail: "Médecin, école, artisans…", Icone: IconeContacts },

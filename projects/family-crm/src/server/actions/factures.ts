@@ -5,9 +5,9 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { exigerUtilisateur } from "@/lib/auth";
-import { zCategorieFacture, zRecurrence, type Recurrence } from "@/lib/constantes";
+import { zCategorieFacture, zRecurrence } from "@/lib/constantes";
 import { dateBruxelles, parserEuros } from "@/lib/dates";
-import { occurrenceSuivante } from "@/lib/recurrence";
+import { creerOccurrence, marquerPaiementPaye } from "@/lib/factures";
 import { basculerEcheanceFaite, supprimerEcheances, synchroniserEcheance } from "@/lib/echeances";
 
 export interface EtatFormulaire {
@@ -59,24 +59,6 @@ function lireFormulaire(formData: FormData) {
       notes: d.notes || null,
     },
   };
-}
-
-/** Crée l'occurrence (Paiement) et son échéance liée. */
-async function creerOccurrence(
-  facture: { id: string; libelle: string; payeurId: string | null },
-  dateEcheance: Date,
-  montantCents: number,
-) {
-  const paiement = await db.paiement.create({
-    data: { factureId: facture.id, dateEcheance, montantCents },
-  });
-  await synchroniserEcheance("FACTURE", paiement.id, {
-    titre: `Payer : ${facture.libelle}`,
-    dateEcheance,
-    alerteJoursAvant: 7,
-    membreId: facture.payeurId,
-  });
-  return paiement;
 }
 
 export async function creerFacture(
@@ -148,35 +130,18 @@ export async function basculerPaiement(formData: FormData): Promise<void> {
   });
   if (!paiement) return;
 
-  await db.paiement.update({
-    where: { id: paiementId },
-    data: { statut: payer ? "PAYE" : "A_PAYER", payeLe: payer ? new Date() : null },
-  });
-  const echeance = await db.echeance.findFirst({
-    where: { module: "FACTURE", sourceId: paiementId },
-  });
-  if (echeance) await basculerEcheanceFaite(echeance.id, payer);
-
-  const suivante = occurrenceSuivante(
-    paiement.dateEcheance,
-    paiement.facture.recurrence as Recurrence,
-  );
-
-  if (payer && suivante && paiement.facture.active) {
-    // Ne génère pas de doublon si une occurrence non payée existe déjà.
-    const dejaEnAttente = await db.paiement.findFirst({
-      where: { factureId: paiement.factureId, statut: "A_PAYER" },
+  if (payer) {
+    await marquerPaiementPaye(paiementId);
+  } else {
+    await db.paiement.update({
+      where: { id: paiementId },
+      data: { statut: "A_PAYER", payeLe: null },
     });
-    if (!dejaEnAttente) {
-      await db.facture.update({
-        where: { id: paiement.factureId },
-        data: { prochaineEcheance: suivante },
-      });
-      await creerOccurrence(paiement.facture, suivante, paiement.facture.montantCents);
-    }
-  }
+    const echeance = await db.echeance.findFirst({
+      where: { module: "FACTURE", sourceId: paiementId },
+    });
+    if (echeance) await basculerEcheanceFaite(echeance.id, false);
 
-  if (!payer) {
     // Retire l'occurrence suivante auto-générée (non payée) pour éviter
     // un doublon quand on re-marquera celle-ci comme payée.
     const generee = await db.paiement.findFirst({

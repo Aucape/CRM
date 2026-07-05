@@ -9,7 +9,7 @@
 //   emma@famille.be   / demo1234  (enfant)
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 
 const db = new PrismaClient();
 
@@ -29,6 +29,9 @@ function dansNJours(n: number, heure = 0, minute = 0): Date {
 async function main() {
   console.log("Nettoyage de la base…");
   // Ordre inverse des dépendances.
+  await db.transaction.deleteMany();
+  await db.compteBancaire.deleteMany();
+  await db.regleCategorie.deleteMany();
   await db.echeance.deleteMany();
   await db.paiement.deleteMany();
   await db.facture.deleteMany();
@@ -285,6 +288,70 @@ async function main() {
     ],
   });
 
+  console.log("Finances…");
+  const compte = await db.compteBancaire.create({
+    data: {
+      nom: "Compte commun Belfius",
+      iban: "BE68539007547034",
+      banque: "BELFIUS",
+      soldeCents: 3245_67,
+      soldeDate: new Date(),
+    },
+  });
+  await db.regleCategorie.createMany({
+    data: [
+      { motCle: "colruyt", categorie: "COURSES" },
+      { motCle: "delhaize", categorie: "COURSES" },
+      { motCle: "total belgium", categorie: "TRANSPORT" },
+    ],
+  });
+
+  // Même format d'empreinte que src/lib/finances.ts (anti-doublon).
+  const normaliser = (t: string) =>
+    t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const empreinte = (date: Date, montantCents: number, contrepartie: string, communication: string) =>
+    createHash("sha256")
+      .update(
+        [
+          compte.id,
+          date.toISOString().slice(0, 10),
+          montantCents,
+          normaliser(contrepartie),
+          normaliser(communication),
+        ].join("|"),
+      )
+      .digest("hex");
+
+  const mouvements = [
+    { jours: -2, montant: -132_45, contrepartie: "COLRUYT AUDERGHEM", communication: "Paiement Bancontact", categorie: "COURSES" },
+    { jours: -3, montant: -13_49, contrepartie: "NETFLIX INTERNATIONAL", communication: "Abonnement mensuel", categorie: "ABONNEMENTS" },
+    { jours: -4, montant: 2850_00, contrepartie: "SPRL HORIZON CONSULTING", communication: "Salaire juin", categorie: "REVENUS" },
+    { jours: -5, montant: -87_20, contrepartie: "DELHAIZE IXELLES", communication: "Paiement Bancontact", categorie: "COURSES" },
+    { jours: -6, montant: -68_50, contrepartie: "RESTAURANT LE ZINNEKE", communication: "", categorie: "RESTO_SORTIES" },
+    { jours: -8, montant: -100_00, contrepartie: "BANCONTACT CASH", communication: "Retrait distributeur", categorie: "RETRAIT_CASH" },
+    { jours: -9, montant: -75_30, contrepartie: "TOTAL BELGIUM", communication: "Carburant", categorie: "TRANSPORT" },
+    { jours: -11, montant: -210_00, contrepartie: "ENGIE ELECTRABEL", communication: "Domiciliation énergie", categorie: "ENERGIE" },
+    { jours: -13, montant: -23_50, contrepartie: "PHARMACIE MULTIPHARMA", communication: "", categorie: "SANTE" },
+    { jours: -15, montant: -45_00, contrepartie: "ACADEMIE MUSIQUE IXELLES", communication: "Cotisation Emma", categorie: "ENFANTS" },
+    { jours: -17, montant: -250_00, contrepartie: "EPARGNE FAMILLE", communication: "Virement épargne", categorie: "VIREMENT_INTERNE" },
+    { jours: -20, montant: -34_99, contrepartie: "ZALANDO", communication: "Commande 784512", categorie: "SHOPPING" },
+    { jours: -1, montant: -12_60, contrepartie: "PROXY DELHAIZE FLAGEY", communication: "Paiement Bancontact", categorie: "A_TRIER" },
+  ];
+  for (const m of mouvements) {
+    const date = dansNJours(m.jours, 12);
+    await db.transaction.create({
+      data: {
+        compteId: compte.id,
+        date,
+        montantCents: m.montant,
+        contrepartie: m.contrepartie,
+        communication: m.communication || null,
+        categorie: m.categorie,
+        empreinte: empreinte(date, m.montant, m.contrepartie, m.communication),
+      },
+    });
+  }
+
   const total = {
     membres: await db.membre.count(),
     factures: await db.facture.count(),
@@ -293,6 +360,7 @@ async function main() {
     contacts: await db.contact.count(),
     documents: await db.document.count(),
     echeances: await db.echeance.count(),
+    transactions: await db.transaction.count(),
   };
   console.log("Seed terminé :", total);
 }

@@ -39,7 +39,7 @@ export default async function PageRecherche({
   if (q.length >= 2) {
     // Volumes familiaux : on charge tout et on filtre en mémoire, ce qui
     // permet une recherche insensible aux accents (impossible en LIKE SQLite).
-    const [membres, factures, articles, evenements, contacts, documents, echeances] =
+    const [membres, factures, articles, evenements, contacts, documents, echeances, transactions] =
       await Promise.all([
         db.membre.findMany(),
         db.facture.findMany(),
@@ -48,6 +48,7 @@ export default async function PageRecherche({
         db.contact.findMany(),
         db.document.findMany({ include: { membre: true } }),
         db.echeance.findMany(),
+        db.transaction.findMany({ orderBy: { date: "desc" }, take: 2000 }),
       ]);
 
     sections.push(
@@ -121,6 +122,16 @@ export default async function PageRecherche({
             href: "/echeances",
             titre: e.titre,
             detail: `${formaterDate(e.dateEcheance)} · ${e.statut === "FAIT" ? "fait" : "à venir"}`,
+          })),
+      },
+      {
+        titre: "Transactions bancaires",
+        resultats: transactions
+          .filter((t) => correspond(q, t.contrepartie, t.communication))
+          .map((t) => ({
+            href: "/finances/transactions",
+            titre: t.contrepartie ?? t.communication ?? "Transaction",
+            detail: `${formaterDate(t.date)} · ${formaterEuros(t.montantCents)}`,
           })),
       },
     );

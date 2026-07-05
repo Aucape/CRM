@@ -162,6 +162,21 @@ export const IconeLien = (p: Props) => (
   </Svg>
 );
 
+export const IconeFinances = (p: Props) => (
+  <Svg {...p}>
+    <path d="M4 20h16" />
+    <path d="M6.5 20v-7M11 20V9.5M15.5 20v-4.5M20 20V5.5" />
+  </Svg>
+);
+
+export const IconeBanque = (p: Props) => (
+  <Svg {...p}>
+    <path d="m3 9 9-5.5L21 9" />
+    <path d="M4.5 9v8M9.5 9v8M14.5 9v8M19.5 9v8" />
+    <path d="M3 17h18v3H3z" />
+  </Svg>
+);
+
 export const IconeChevronGauche = (p: Props) => (
   <Svg {...p}>
     <path d="m14.5 5-7 7 7 7" />
