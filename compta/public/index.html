@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compta.be — Comptabilité pour indépendant belge</title>
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧾</text></svg>">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">🧾 <span>Compta<b>.be</b></span></div>
+      <nav id="nav">
+        <a href="#/dashboard" data-route="dashboard">📊 Tableau de bord</a>
+        <div class="nav-section">Ventes</div>
+        <a href="#/invoices" data-route="invoices">🧾 Factures</a>
+        <a href="#/quotes" data-route="quotes">📝 Devis</a>
+        <a href="#/recurring" data-route="recurring">🔁 Récurrentes</a>
+        <a href="#/clients" data-route="clients">👥 Clients</a>
+        <a href="#/products" data-route="products">📦 Produits &amp; services</a>
+        <div class="nav-section">Achats</div>
+        <a href="#/expenses" data-route="expenses">💸 Dépenses</a>
+        <a href="#/assets" data-route="assets">🏗️ Immobilisations</a>
+        <div class="nav-section">Banque</div>
+        <a href="#/bank" data-route="bank">🏦 Banque</a>
+        <div class="nav-section">Fiscalité</div>
+        <a href="#/vat" data-route="vat">🇧🇪 TVA</a>
+        <a href="#/taxes" data-route="taxes">💰 Impôts &amp; cotisations</a>
+        <a href="#/calendar" data-route="calendar">📅 Calendrier fiscal</a>
+        <a href="#/reports" data-route="reports">📈 Rapports</a>
+        <div class="nav-section"></div>
+        <a href="#/settings" data-route="settings">⚙️ Paramètres</a>
+      </nav>
+      <div class="sidebar-footer">Vos données restent chez vous.<br>Export Intervat · Peppol UBL · CODA</div>
+    </aside>
+    <main id="main" class="main"></main>
+  </div>
+  <div id="modal-root"></div>
+  <div id="toast-root"></div>
+  <script src="js/api.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/views/dashboard.js"></script>
+  <script src="js/views/sales.js"></script>
+  <script src="js/views/contacts.js"></script>
+  <script src="js/views/expenses.js"></script>
+  <script src="js/views/bank.js"></script>
+  <script src="js/views/fiscal.js"></script>
+  <script src="js/views/settings.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
