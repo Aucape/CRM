@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+/* Palette de l'app — bleu nuit + fond doux, pensée mobile-first. */
+:root {
+  --background: #f6f7f9;
+  --foreground: #1c2430;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans:
+    system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Zone sûre iOS (encoche / barre d'accueil) pour la barre d'onglets. */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}

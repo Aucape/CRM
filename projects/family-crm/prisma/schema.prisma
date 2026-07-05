@@ -1,0 +1,228 @@
+// =====================================================================
+// CRM Familial — SQLite + Prisma
+//
+// Convention : modèles et champs en français.
+// SQLite ne supportant pas les enums Prisma, les valeurs fermées sont
+// des String validées par Zod — voir src/lib/constantes.ts pour la
+// liste des valeurs autorisées et leurs libellés fr-BE.
+// Les montants sont stockés en centimes (Int), les dates en UTC et
+// affichées en Europe/Brussels.
+// =====================================================================
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ------------------------------------------------------------------
+// Authentification & membres du foyer
+// ------------------------------------------------------------------
+
+// Compte de connexion. Tous les membres n'en ont pas forcément un :
+// un bébé est un Membre sans Utilisateur.
+model Utilisateur {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  motDePasseHash String
+  role           String   @default("PARENT") // PARENT | ENFANT
+  membre         Membre   @relation(fields: [membreId], references: [id])
+  membreId       String   @unique
+  creeLe         DateTime @default(now())
+}
+
+// Personne du foyer : porte le profil pratique (tailles, allergies…).
+model Membre {
+  id              String    @id @default(cuid())
+  prenom          String
+  nom             String?
+  dateNaissance   DateTime?
+  couleur         String // hex, code couleur du membre dans le calendrier
+  tailleVetements String? // ex. « 128 / 8 ans »
+  pointure        String?
+  allergies       String?
+  groupeSanguin   String? // ex. « O+ »
+  notes           String?
+  archive         Boolean   @default(false)
+  creeLe          DateTime  @default(now())
+
+  utilisateur Utilisateur?
+  evenements  EvenementMembre[]
+  documents   Document[]
+  factures    Facture[] // factures dont il est le payeur
+  echeances   Echeance[]
+  fluxIcs     FluxCalendrier[]
+}
+
+// ------------------------------------------------------------------
+// Colonne vertébrale : échéances transverses
+// ------------------------------------------------------------------
+
+// Toute date à ne pas rater, quel que soit le module d'origine.
+// Le dashboard et les alertes ne lisent QUE cette table.
+// module + sourceId relient l'échéance à son objet d'origine ; le
+// service src/lib/echeances.ts resynchronise quand la source change.
+// Le statut EN_RETARD n'est jamais stocké : il est calculé à la
+// lecture (dateEcheance passée et statut != FAIT).
+model Echeance {
+  id               String    @id @default(cuid())
+  titre            String
+  dateEcheance     DateTime
+  statut           String    @default("A_VENIR") // A_VENIR | FAIT
+  module           String // MANUEL | FACTURE | DOCUMENT (Phase 2+ : SANTE, VEHICULE…)
+  sourceId         String? // id de l'objet source dans son module
+  alerteJoursAvant Int       @default(14)
+  notes            String?
+  faitLe           DateTime?
+  membre           Membre?   @relation(fields: [membreId], references: [id], onDelete: SetNull)
+  membreId         String?
+  creeLe           DateTime  @default(now())
+
+  @@index([dateEcheance, statut])
+  @@index([module, sourceId])
+}
+
+// ------------------------------------------------------------------
+// Factures & abonnements
+// ------------------------------------------------------------------
+
+// Définition d'une facture ou d'un abonnement (le modèle récurrent).
+model Facture {
+  id                String   @id @default(cuid())
+  libelle           String // ex. « Électricité Engie »
+  categorie         String // voir CATEGORIES_FACTURE dans constantes.ts
+  montantCents      Int // montant par défaut d'une occurrence, en centimes
+  recurrence        String // UNIQUE | MENSUELLE | BIMESTRIELLE | TRIMESTRIELLE | SEMESTRIELLE | ANNUELLE
+  prochaineEcheance DateTime // prochaine occurrence à générer
+  active            Boolean  @default(true)
+  notes             String?
+  payeur            Membre?  @relation(fields: [payeurId], references: [id], onDelete: SetNull)
+  payeurId          String?
+  creeLe            DateTime @default(now())
+
+  paiements Paiement[]
+}
+
+// Occurrence concrète d'une facture (ce qu'on paie ce mois-ci).
+// Générée depuis la récurrence ; crée son Echeance via le service central.
+model Paiement {
+  id           String    @id @default(cuid())
+  facture      Facture   @relation(fields: [factureId], references: [id], onDelete: Cascade)
+  factureId    String
+  dateEcheance DateTime
+  montantCents Int // modifiable : montant réel de la période
+  statut       String    @default("A_PAYER") // A_PAYER | PAYE
+  payeLe       DateTime?
+
+  @@index([dateEcheance, statut])
+}
+
+// ------------------------------------------------------------------
+// Liste de courses
+// ------------------------------------------------------------------
+
+model ArticleCourse {
+  id        String    @id @default(cuid())
+  nom       String
+  rayon     String    @default("AUTRE") // voir RAYONS dans constantes.ts
+  quantite  String? // libre : « 2 », « 500 g »…
+  coche     Boolean   @default(false)
+  recurrent Boolean   @default(false) // ré-ajoutable en un clic
+  ajouteLe  DateTime  @default(now())
+  cocheLe   DateTime?
+
+  @@index([coche, rayon])
+}
+
+// ------------------------------------------------------------------
+// Calendrier partagé (compatible Apple Calendar via flux ICS)
+// ------------------------------------------------------------------
+
+model Evenement {
+  id             String   @id @default(cuid())
+  uid            String   @unique @default(cuid()) // UID iCal stable pour la sync
+  titre          String
+  description    String?
+  lieu           String?
+  debut          DateTime // UTC ; affiché en Europe/Brussels
+  fin            DateTime
+  journeeEntiere Boolean  @default(false)
+  rrule          String? // récurrence au format RRULE iCal (ex. « FREQ=WEEKLY »)
+  creeLe         DateTime @default(now())
+  modifieLe      DateTime @updatedAt // alimente DTSTAMP du flux ICS
+
+  membres EvenementMembre[]
+
+  @@index([debut])
+}
+
+// Un événement peut concerner plusieurs membres (aucun = toute la famille).
+model EvenementMembre {
+  evenement   Evenement @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+  evenementId String
+  membre      Membre    @relation(fields: [membreId], references: [id], onDelete: Cascade)
+  membreId    String
+
+  @@id([evenementId, membreId])
+}
+
+// Flux ICS par abonnement : URL secrète /api/ics/[jeton].
+// membreId null = flux « toute la famille ». Jeton révocable (régénérable).
+model FluxCalendrier {
+  id       String   @id @default(cuid())
+  jeton    String   @unique
+  membre   Membre?  @relation(fields: [membreId], references: [id], onDelete: Cascade)
+  membreId String?  @unique
+  creeLe   DateTime @default(now())
+}
+
+// ------------------------------------------------------------------
+// Contacts utiles
+// ------------------------------------------------------------------
+
+model Contact {
+  id        String   @id @default(cuid())
+  nom       String // ex. « Dr Peeters — pédiatre »
+  categorie String   @default("AUTRE") // voir CATEGORIES_CONTACT dans constantes.ts
+  telephone String?
+  email     String?
+  adresse   String?
+  tags      String   @default("") // libres, séparés par des virgules
+  notes     String?
+  creeLe    DateTime @default(now())
+}
+
+// ------------------------------------------------------------------
+// Documents & échéances administratives belges
+// ------------------------------------------------------------------
+
+// Passeports, eID, Kids-ID (validité 3 ans), permis, assurances,
+// Tax-on-web, taxe de circulation, précompte immobilier, allocations
+// familiales… dateExpiration crée l'Echeance associée.
+model Document {
+  id               String    @id @default(cuid())
+  titre            String // ex. « Kids-ID Émile »
+  type             String // voir TYPES_DOCUMENT dans constantes.ts
+  membre           Membre?   @relation(fields: [membreId], references: [id], onDelete: SetNull)
+  membreId         String? // null = document du foyer (ex. assurance habitation)
+  numeroReference  String?
+  dateEmission     DateTime?
+  dateExpiration   DateTime?
+  alerteJoursAvant Int       @default(60) // défaut adapté par type (Kids-ID : 90 j)
+  notes            String?
+  creeLe           DateTime  @default(now())
+
+  @@index([dateExpiration])
+}
+
+// ------------------------------------------------------------------
+// Paramètres (clé/valeur) : défauts d'alerte, préférences d'affichage…
+// ------------------------------------------------------------------
+
+model Parametre {
+  cle    String @id
+  valeur String
+}
