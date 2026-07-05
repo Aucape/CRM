@@ -63,6 +63,15 @@ votre régime TVA (assujetti / franchise / exempté).
 - Compte de résultats, **export CSV pour votre comptable**, vérificateur de n° TVA (checksum)
 - **Sauvegarde/restauration** complète en JSON
 
+### Intégrations (optionnelles)
+- **Scan de justificatifs par IA** : avec une clé API Anthropic (Paramètres → Intégrations),
+  le bouton « 🪄 Analyser par IA » lit vos tickets/factures (photo ou PDF) et préremplit
+  fournisseur, date, montants, TVA et catégorie.
+- **Réception Peppol** : importez les factures UBL reçues (bouton « 📥 Facture UBL reçue »
+  dans Dépenses) — parsing automatique en dépense, détection de doublons.
+- **Envoi Peppol** : configurez un point d'accès (Storecove ou endpoint personnalisé) pour
+  transmettre vos factures sur le réseau en un clic (bêta — testez avec une facture d'essai).
+
 ## Notes
 
 - Données stockées en SQLite dans `compta/data/` (variable `COMPTA_DATA_DIR` pour changer).

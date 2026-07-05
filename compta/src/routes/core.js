@@ -13,11 +13,12 @@ router.get('/settings', (req, res) => {
     company: getSetting('company'),
     fiscal: getSetting('fiscal'),
     tax_params: getSetting('tax_params'),
+    integrations: getSetting('integrations'),
   });
 });
 
 router.put('/settings', (req, res) => {
-  for (const key of ['company', 'fiscal', 'tax_params']) {
+  for (const key of ['company', 'fiscal', 'tax_params', 'integrations']) {
     if (req.body[key]) setSetting(key, Object.assign(getSetting(key), req.body[key]));
   }
   res.json({ ok: true });

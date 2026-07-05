@@ -17,6 +17,7 @@ async function viewExpenses(main, params) {
         <div class="sub">Déductibilité belge appliquée automatiquement par catégorie (restaurant 69 %, réception 50 %, voiture…).</div></div>
       <div class="header-actions">
         <span id="year-slot"></span>
+        <label class="btn" style="margin:0">📥 Facture UBL reçue<input type="file" id="import-ubl" accept=".xml" hidden></label>
         <button class="btn primary" id="new-expense">+ Nouvelle dépense</button></div>
     </div>
     <div class="grid grid-3">
@@ -45,6 +46,21 @@ async function viewExpenses(main, params) {
     location.hash = '#/expenses?year=' + y;
   }));
   document.getElementById('new-expense').onclick = () => openExpenseEditor(null, categories, () => viewExpenses(main, params));
+  // Import d'une facture électronique UBL reçue (Peppol / e-mail du point d'accès).
+  document.getElementById('import-ubl').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const r = await api('/peppol/import-ubl', { method: 'POST', body: fd });
+      toast(`Facture ${esc(r.parsed.number)} de ${esc(r.parsed.supplier)} importée en dépense. ${r.hint}`);
+      viewExpenses(main, params);
+    } catch (err) {
+      toast(err.message, true);
+    }
+    e.target.value = '';
+  });
   main.querySelectorAll('[data-edit]').forEach((b) => b.addEventListener('click', () =>
     openExpenseEditor(expenses.find((e) => e.id === Number(b.dataset.edit)), categories, () => viewExpenses(main, params))));
   main.querySelectorAll('[data-del]').forEach((b) => b.addEventListener('click', () =>
@@ -120,6 +136,10 @@ function openExpenseEditor(existing, categories, refresh) {
       </div>
       <label>Justificatif (photo / PDF)</label>
       <input type="file" name="receipt" accept="image/*,.pdf">
+      <div style="display:flex; gap:8px; align-items:center; margin-top:6px">
+        <button type="button" class="btn small" id="ai-scan">🪄 Analyser par IA</button>
+        <span class="hint" id="ai-status">Remplit automatiquement les champs depuis la photo/le PDF (clé API requise dans Paramètres → Intégrations).</span>
+      </div>
       ${e.receipt_path ? `<div class="hint">Justificatif déjà joint — en choisir un nouveau le remplace.</div>` : ''}
       <div class="modal-actions">
         <button type="button" class="btn" data-close>Annuler</button>
@@ -150,6 +170,38 @@ function openExpenseEditor(existing, categories, refresh) {
   const sync = () => { incl.value = ((Number(excl.value) || 0) + (Number(vat.value) || 0)).toFixed(2); };
   excl.addEventListener('input', sync);
   vat.addEventListener('input', sync);
+  // Scan IA : envoie le justificatif à l'API et préremplit le formulaire.
+  el.querySelector('#ai-scan').addEventListener('click', async () => {
+    const fileInput = el.querySelector('input[name="receipt"]');
+    const status = el.querySelector('#ai-status');
+    if (!fileInput.files[0]) { toast('Choisissez d\'abord un fichier justificatif.', true); return; }
+    const btn = el.querySelector('#ai-scan');
+    btn.disabled = true;
+    status.textContent = 'Analyse en cours… (quelques secondes)';
+    try {
+      const fd = new FormData();
+      fd.append('file', fileInput.files[0]);
+      const r = await api('/ai/scan-receipt', { method: 'POST', body: fd });
+      const form = el.querySelector('form');
+      if (r.supplier) form.supplier.value = r.supplier;
+      if (r.description) form.description.value = r.description;
+      if (r.expense_date) form.expense_date.value = r.expense_date;
+      excl.value = (r.amount_excl ?? 0).toFixed(2);
+      vat.value = (r.vat_amount ?? 0).toFixed(2);
+      incl.value = (r.amount_incl ?? 0).toFixed(2);
+      if (r.category_id) {
+        el.querySelector('#cat-select').value = r.category_id;
+        el.querySelector('#cat-select').dispatchEvent(new Event('change'));
+      }
+      status.textContent = `✓ Analysé (confiance ${r.confidence || '?'}) — vérifiez les montants avant d'enregistrer.`;
+      toast('Justificatif analysé. Relisez les champs avant d\'enregistrer.');
+    } catch (err) {
+      status.textContent = '';
+      toast(err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
   el.querySelector('#quick-vat').addEventListener('change', (ev) => {
     const rate = Number(ev.target.value);
     if (!rate || !Number(incl.value)) return;

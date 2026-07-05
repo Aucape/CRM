@@ -194,6 +194,13 @@ const DEFAULT_SETTINGS = {
     default_payment_days: 30,
     invoice_footer: '',
   },
+  integrations: {
+    anthropic_api_key: '',            // scan de justificatifs par IA (console.anthropic.com)
+    peppol_provider: 'none',          // none | storecove | custom
+    peppol_api_key: '',
+    peppol_legal_entity_id: '',       // Storecove : identifiant de votre entité légale
+    peppol_custom_url: '',            // custom : endpoint POST recevant le XML UBL
+  },
   // Paramètres fiscaux — année de revenus 2026 (modifiables dans Paramètres).
   tax_params: {
     year_label: 'Revenus 2026',

@@ -136,6 +136,28 @@ async function viewSettings(main) {
           <div id="car-result" style="margin-top:8px"></div>
         </div>
         <div class="card">
+          <h2>🔌 Intégrations</h2>
+          <form id="form-integrations">
+            <label>Clé API Anthropic (scan de justificatifs par IA)</label>
+            <input name="anthropic_api_key" type="password" value="${esc(s.integrations?.anthropic_api_key || '')}" placeholder="sk-ant-…" autocomplete="off">
+            <div class="hint">Créez une clé sur console.anthropic.com. Le bouton « 🪄 Analyser par IA » des dépenses lit alors vos tickets et factures automatiquement (~1 centime par scan). Sans clé, l'encodage manuel fonctionne normalement.</div>
+            <label>Point d'accès Peppol (envoi des factures sur le réseau)</label>
+            <select name="peppol_provider">
+              <option value="none" ${(s.integrations?.peppol_provider || 'none') === 'none' ? 'selected' : ''}>Aucun — je transmets le fichier UBL moi-même</option>
+              <option value="storecove" ${s.integrations?.peppol_provider === 'storecove' ? 'selected' : ''}>Storecove (api.storecove.com)</option>
+              <option value="custom" ${s.integrations?.peppol_provider === 'custom' ? 'selected' : ''}>Endpoint personnalisé (POST du XML UBL)</option>
+            </select>
+            <div class="form-row">
+              <div><label>Clé API du point d'accès</label><input name="peppol_api_key" type="password" value="${esc(s.integrations?.peppol_api_key || '')}" autocomplete="off"></div>
+              <div><label>ID entité légale (Storecove)</label><input name="peppol_legal_entity_id" value="${esc(s.integrations?.peppol_legal_entity_id || '')}"></div>
+            </div>
+            <label>URL de l'endpoint personnalisé</label>
+            <input name="peppol_custom_url" value="${esc(s.integrations?.peppol_custom_url || '')}" placeholder="https://…">
+            <div class="hint">⚠️ L'envoi direct est en bêta : faites un premier essai avec une facture test auprès de votre point d'accès. La réception se fait via « 📥 Facture UBL reçue » dans Dépenses (fichier XML transmis par votre point d'accès ou reçu par e-mail).</div>
+            <div class="modal-actions"><button type="submit" class="btn primary">Enregistrer</button></div>
+          </form>
+        </div>
+        <div class="card">
           <h2>💾 Données</h2>
           <p class="hint">Vos données sont stockées localement (SQLite). Exportez une sauvegarde régulièrement.</p>
           <div style="display:flex; gap:8px; flex-wrap:wrap">
@@ -189,6 +211,12 @@ async function viewSettings(main) {
     }
     await api('/settings', { method: 'PUT', body: { tax_params: { ...numeric, brackets } } });
     toast('Barèmes fiscaux enregistrés.');
+  });
+
+  document.getElementById('form-integrations').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await api('/settings', { method: 'PUT', body: { integrations: formValues(e.target) } });
+    toast('Intégrations enregistrées.');
   });
 
   const myVat = document.getElementById('my-vat');

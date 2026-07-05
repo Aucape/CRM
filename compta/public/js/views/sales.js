@@ -96,6 +96,7 @@ async function openDocumentDetail(id, refresh) {
         <button class="btn" id="act-edit">✏️ Modifier</button>` : ''}
       <a class="btn" href="/api/documents/${d.id}/pdf" target="_blank">📄 PDF</a>
       ${d.doc_type !== 'quote' ? `<a class="btn" href="/api/documents/${d.id}/ubl">🔗 UBL (Peppol)</a>` : ''}
+      ${d.doc_type === 'invoice' && !isDraft ? `<button class="btn" id="act-peppol">📡 Envoyer via Peppol</button>` : ''}
       ${d.doc_type === 'invoice' && ['sent', 'overdue'].includes(d.status) ? `
         <button class="btn" id="act-paid">💶 Marquer payée</button>
         <a class="btn" href="/api/documents/${d.id}/reminder-pdf" target="_blank">🔔 Rappel PDF ${d.reminder_count ? '(n°' + (d.reminder_count + 1) + ')' : ''}</a>` : ''}
@@ -115,6 +116,17 @@ async function openDocumentDetail(id, refresh) {
   el.querySelector('#act-finalize')?.addEventListener('click', () =>
     act(() => api(`/documents/${id}/finalize`, { method: 'POST' }), 'Document numéroté et finalisé.'));
   el.querySelector('#act-edit')?.addEventListener('click', () => { modal.close(); openDocumentEditor(d.doc_type, d, refresh); });
+  el.querySelector('#act-peppol')?.addEventListener('click', async (ev) => {
+    ev.target.disabled = true;
+    try {
+      const r = await api(`/documents/${id}/peppol-send`, { method: 'POST' });
+      toast(`Facture transmise au point d'accès Peppol (${r.provider}). 📡`);
+    } catch (e) {
+      toast(e.message, true);
+    } finally {
+      ev.target.disabled = false;
+    }
+  });
   el.querySelector('#act-paid')?.addEventListener('click', () =>
     act(() => api(`/documents/${id}/status`, { method: 'POST', body: { status: 'paid' } }), 'Facture marquée payée. 🎉'));
   el.querySelector('#act-convert')?.addEventListener('click', () =>

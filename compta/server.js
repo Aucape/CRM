@@ -12,6 +12,7 @@ const documents = require('./src/routes/documents');
 const expenses = require('./src/routes/expenses');
 const bank = require('./src/routes/bank');
 const fiscal = require('./src/routes/fiscal');
+const integrations = require('./src/routes/integrations');
 
 const app = express();
 app.use(express.json({ limit: '25mb' }));
@@ -22,11 +23,12 @@ app.use('/api', documents.router);
 app.use('/api', expenses);
 app.use('/api', bank);
 app.use('/api', fiscal);
+app.use('/api', integrations);
 
 // Gestion d'erreurs uniforme
 app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ error: err.message || 'Erreur interne.' });
+  if (!err.status || err.status >= 500) console.error(err);
+  res.status(err.status || 500).json({ error: err.message || 'Erreur interne.' });
 });
 
 // Factures récurrentes : génération au démarrage puis toutes les 12 h.
