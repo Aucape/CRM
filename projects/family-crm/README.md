@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏠 CRM Familial
 
-## Getting Started
+Le tableau de bord centralisé de la famille : échéances, factures, courses,
+calendrier partagé (compatible Apple Calendar), contacts et documents
+administratifs — pensé pour une famille en **Belgique** 🇧🇪 (fr-BE, dates
+JJ/MM/AAAA, euros, fuseau Europe/Brussels).
 
-First, run the development server:
+Tout fonctionne **en local, sans aucun service externe** : Next.js + SQLite,
+un seul fichier de base de données à sauvegarder.
+
+## Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env        # puis remplacez SESSION_SECRET (openssl rand -base64 32)
+npx prisma db push          # crée prisma/dev.db
+npx prisma db seed          # données de démonstration
+npm run dev                 # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Comptes de démonstration (mot de passe : `demo1234`) :
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Compte | Rôle |
+| --- | --- |
+| `marie@famille.be` | parent |
+| `thomas@famille.be` | parent |
+| `emma@famille.be` | enfant |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Architecture
 
-## Learn More
+Voir [ARCHITECTURE.md](./ARCHITECTURE.md). L'idée centrale : chaque module
+matérialise ses dates importantes dans la table transverse `Echeance`
+(via `src/lib/echeances.ts`) ; le dashboard et les alertes ne lisent que
+cette table. Le statut « en retard » est calculé à la lecture — aucun cron.
 
-To learn more about Next.js, take a look at the following resources:
+## Tester module par module
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Dashboard (`/`)** — la carte ambre « À ne pas rater » liste les échéances en
+retard ou entrées en fenêtre d'alerte (le seed en contient) ; suivent les
+compteurs factures/courses, les événements des 7 prochains jours, puis
+« Cette semaine » et « Ce mois ». Cochez une échéance : elle disparaît partout.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Membres (`/membres`)** — profils avec âge, tailles, groupe sanguin,
+allergies mises en évidence en rouge. Créez un membre (choix de couleur pour
+le calendrier), modifiez-le, archivez-le (parents uniquement, l'historique
+est conservé).
 
-## Deploy on Vercel
+**Factures (`/factures`)** — la section « À payer » a une facture en retard
+(seed). Marquez-la payée : l'occurrence suivante est générée selon la
+récurrence et l'échéance passe à « fait ». « Payées récemment » permet
+d'annuler. La carte budget lisse les montants par mois et par catégorie
+(une facture annuelle pèse 1/12 par mois).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Courses (`/courses`)** — ajoutez un article avec son rayon, cochez-le en
+un geste (optimiste, instantané). « Terminer les courses » vide le caddie
+mais garde les articles récurrents ↻, ré-ajoutables en un clic.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Calendrier (`/calendrier`)** — vues semaine/mois, filtre par membre,
+récurrences hebdomadaires du seed visibles. Créez un événement « journée
+entière » ou horaire, multi-membres.
+*Apple Calendar* : ouvrez `/calendrier/abonnements`, copiez une URL de flux,
+puis sur iPhone : Réglages → Apps → Calendrier → Comptes → Autre →
+**Ajouter un cal. avec abonnement**. Les événements de l'app apparaissent
+dans Calendrier ; « Régénérer » révoque l'URL.
+
+**Contacts (`/contacts`)** — répertoire groupé par catégorie, recherche,
+tags ; téléphone/e-mail cliquables sur mobile.
+
+**Documents (`/documents`)** — le seed contient une Kids-ID qui expire
+bientôt et la déclaration Tax-on-web : elles apparaissent dans « À
+renouveler bientôt » et sur le dashboard. Le délai d'alerte se pré-remplit
+selon le type (Kids-ID : 90 j).
+
+**Échéances (`/echeances`)** — vue exhaustive (en retard / bientôt / plus
+tard / faites) + création d'échéances manuelles libres.
+
+**Recherche (`/recherche`)** — un mot (min. 2 lettres) cherche dans tous les
+modules, insensible aux accents : essayez « emma » ou « engie ».
+
+**Export (`/api/export`, aussi via Plus → Export JSON)** — télécharge un
+backup JSON complet (réservé aux parents).
+
+## Scripts
+
+| Commande | Effet |
+| --- | --- |
+| `npm run dev` | développement |
+| `npm run build && npm start` | production |
+| `npm run db:push` | applique le schéma Prisma |
+| `npm run db:seed` | (re)charge les données de démo |
+
+## Sauvegarde
+
+Deux options complémentaires : copier `prisma/dev.db` (fichier SQLite
+complet) ou télécharger l'export JSON depuis l'app.
