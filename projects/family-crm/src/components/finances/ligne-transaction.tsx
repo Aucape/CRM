@@ -3,14 +3,19 @@
 import type { Transaction } from "@prisma/client";
 import { formaterDate, formaterEuros } from "@/lib/dates";
 import { Badge } from "@/components/ui/base";
-import { CategorieTransaction } from "@/components/finances/categorie-transaction";
+import {
+  CategorieTransaction,
+  type OptionCategorie,
+} from "@/components/finances/categorie-transaction";
 
 export function LigneTransaction({
   transaction: t,
   nomCompte,
+  categories,
 }: {
   transaction: Transaction;
   nomCompte?: string;
+  categories: OptionCategorie[];
 }) {
   return (
     <li className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5">
@@ -30,6 +35,7 @@ export function LigneTransaction({
           id={t.id}
           categorie={t.categorie}
           contrepartie={t.contrepartie}
+          categories={categories}
         />
         <span
           className={`w-24 text-right font-semibold tabular-nums ${

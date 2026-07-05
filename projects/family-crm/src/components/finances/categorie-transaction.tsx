@@ -2,22 +2,26 @@
 
 // Sélecteur de catégorie en ligne : changement appliqué immédiatement,
 // avec option « mémoriser en règle » pour catégoriser automatiquement
-// les prochaines transactions du même commerçant.
+// les prochaines transactions du même commerçant. La liste mêle
+// catégories intégrées et catégories personnalisées de la famille.
 import { useTransition } from "react";
 import { changerCategorie } from "@/server/actions/finances";
-import {
-  CATEGORIES_TRANSACTION,
-  LIBELLES_CATEGORIE_TRANSACTION,
-} from "@/lib/constantes";
+
+export interface OptionCategorie {
+  cle: string;
+  libelle: string;
+}
 
 export function CategorieTransaction({
   id,
   categorie,
   contrepartie,
+  categories,
 }: {
   id: string;
   categorie: string;
   contrepartie: string | null;
+  categories: OptionCategorie[];
 }) {
   const [enCours, demarrer] = useTransition();
 
@@ -50,9 +54,9 @@ export function CategorieTransaction({
         }`}
         aria-label="Catégorie"
       >
-        {CATEGORIES_TRANSACTION.map((c) => (
-          <option key={c} value={c}>
-            {LIBELLES_CATEGORIE_TRANSACTION[c]}
+        {categories.map((c) => (
+          <option key={c.cle} value={c.cle}>
+            {c.libelle}
           </option>
         ))}
       </select>

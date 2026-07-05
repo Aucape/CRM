@@ -8,11 +8,11 @@ import { coutMensuelCents } from "@/lib/recurrence";
 import {
   CATEGORIES_NEUTRES,
   LIBELLES_BANQUE,
-  LIBELLES_CATEGORIE_TRANSACTION,
   type Banque,
   type CategorieTransaction,
   type Recurrence,
 } from "@/lib/constantes";
+import { libellesParCle, listerCategories } from "@/lib/categories";
 import {
   ajouterMois,
   composantsBruxelles,
@@ -60,7 +60,7 @@ export default async function PageFinances({
     return `${cc.annee}-${String(cc.mois).padStart(2, "0")}`;
   };
 
-  const [comptes, transactionsMois, factures] = await Promise.all([
+  const [comptes, transactionsMois, factures, categories] = await Promise.all([
     db.compteBancaire.findMany({
       orderBy: { creeLe: "asc" },
       include: { _count: { select: { transactions: true } } },
@@ -71,7 +71,9 @@ export default async function PageFinances({
       include: { compte: { select: { nom: true } } },
     }),
     db.facture.findMany({ where: { active: true } }),
+    listerCategories(),
   ]);
+  const libelles = libellesParCle(categories);
 
   // Totaux du mois (hors virements internes).
   const utiles = transactionsMois.filter(
@@ -179,7 +181,14 @@ export default async function PageFinances({
       </div>
 
       {/* Dépenses par catégorie + comparaison budget récurrent */}
-      <Carte titre="Dépenses du mois par catégorie">
+      <Carte
+        titre="Dépenses du mois par catégorie"
+        action={
+          <Link href="/finances/categories" className="text-sm font-medium text-blue-700">
+            Gérer
+          </Link>
+        }
+      >
         {categoriesTriees.length === 0 ? (
           <EtatVide message="Aucune dépense sur ce mois. Importez un extrait bancaire pour commencer." />
         ) : (
@@ -188,9 +197,7 @@ export default async function PageFinances({
               {categoriesTriees.map(([categorie, montant]) => (
                 <li key={categorie} className="flex items-center gap-3 text-sm">
                   <span className="w-36 shrink-0 truncate text-slate-600">
-                    {LIBELLES_CATEGORIE_TRANSACTION[
-                      categorie as CategorieTransaction
-                    ] ?? categorie}
+                    {libelles.get(categorie) ?? categorie}
                   </span>
                   <span
                     className={`h-2 rounded-full ${categorie === "A_TRIER" ? "bg-amber-400" : "bg-blue-600"}`}
@@ -312,7 +319,12 @@ export default async function PageFinances({
         ) : (
           <ul className="divide-y divide-slate-100">
             {transactionsMois.slice(0, 12).map((t) => (
-              <LigneTransaction key={t.id} transaction={t} nomCompte={t.compte.nom} />
+              <LigneTransaction
+                key={t.id}
+                transaction={t}
+                nomCompte={t.compte.nom}
+                categories={categories}
+              />
             ))}
           </ul>
         )}

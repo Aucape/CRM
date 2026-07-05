@@ -6,7 +6,8 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { exigerParent, exigerUtilisateur } from "@/lib/auth";
-import { zBanque, zCategorieTransaction } from "@/lib/constantes";
+import { zBanque } from "@/lib/constantes";
+import { categorieValide, slugifierCategorie } from "@/lib/categories";
 import { importerTransactions, recategoriser, type ResultatImport } from "@/lib/finances";
 import {
   comptesDeRequisition,
@@ -103,23 +104,65 @@ export async function importerCsv(
 export async function changerCategorie(formData: FormData): Promise<void> {
   await exigerUtilisateur();
   const id = String(formData.get("id") ?? "");
-  const categorie = zCategorieTransaction.safeParse(formData.get("categorie"));
-  if (!categorie.success) return;
+  const categorie = String(formData.get("categorie") ?? "");
+  if (!(await categorieValide(categorie))) return;
 
   await db.transaction.update({
     where: { id },
-    data: { categorie: categorie.data },
+    data: { categorie },
   });
 
   // Optionnel : créer une règle pour catégoriser pareil à l'avenir.
   const motCle = String(formData.get("creerRegle") ?? "").trim();
   if (motCle) {
     await db.regleCategorie.create({
-      data: { motCle, categorie: categorie.data },
+      data: { motCle, categorie },
     });
     await recategoriser();
   }
   revalidatePath("/finances");
+}
+
+// ------------------------------------------------------------------
+// Catégories de dépenses personnalisées
+// ------------------------------------------------------------------
+
+export async function creerCategorieDepense(
+  _etat: EtatFormulaire,
+  formData: FormData,
+): Promise<EtatFormulaire> {
+  await exigerUtilisateur();
+  const libelle = String(formData.get("libelle") ?? "").trim();
+  if (!libelle) return { erreur: "Le nom de la catégorie est obligatoire." };
+
+  const cle = slugifierCategorie(libelle);
+  if (!cle) return { erreur: "Nom de catégorie invalide." };
+  if (await categorieValide(cle)) {
+    return { erreur: `Une catégorie « ${libelle} » existe déjà.` };
+  }
+
+  await db.categorieDepense.create({ data: { cle, libelle } });
+  revalidatePath("/finances");
+  revalidatePath("/finances/categories");
+  return {};
+}
+
+/** Supprime une catégorie personnalisée : ses transactions repassent
+ * « À trier » et ses règles automatiques sont retirées. */
+export async function supprimerCategorieDepense(formData: FormData): Promise<void> {
+  await exigerUtilisateur();
+  const id = String(formData.get("id") ?? "");
+  const categorie = await db.categorieDepense.findUnique({ where: { id } });
+  if (!categorie) return;
+
+  await db.transaction.updateMany({
+    where: { categorie: categorie.cle },
+    data: { categorie: "A_TRIER" },
+  });
+  await db.regleCategorie.deleteMany({ where: { categorie: categorie.cle } });
+  await db.categorieDepense.delete({ where: { id } });
+  revalidatePath("/finances");
+  revalidatePath("/finances/categories");
 }
 
 export async function supprimerTransaction(formData: FormData): Promise<void> {

@@ -27,6 +27,7 @@ export async function GET() {
     comptesBancaires,
     transactions,
     reglesCategories,
+    categoriesDepenses,
   ] = await Promise.all([
     db.membre.findMany(),
     db.utilisateur.findMany(),
@@ -43,6 +44,7 @@ export async function GET() {
     db.compteBancaire.findMany(),
     db.transaction.findMany(),
     db.regleCategorie.findMany(),
+    db.categorieDepense.findMany(),
   ]);
 
   const exportComplet = {
@@ -65,6 +67,7 @@ export async function GET() {
       comptesBancaires,
       transactions,
       reglesCategories,
+      categoriesDepenses,
     },
   };
 

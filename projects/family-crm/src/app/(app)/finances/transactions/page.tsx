@@ -3,11 +3,7 @@ import type { Metadata } from "next";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { exigerUtilisateur } from "@/lib/auth";
-import {
-  CATEGORIES_TRANSACTION,
-  LIBELLES_CATEGORIE_TRANSACTION,
-  type CategorieTransaction,
-} from "@/lib/constantes";
+import { listerCategories } from "@/lib/categories";
 import { ajouterMois, composantsBruxelles, dateBruxelles, formaterEuros } from "@/lib/dates";
 import { Carte, EnTetePage, EtatVide } from "@/components/ui/base";
 import { IconeChevronDroite, IconeChevronGauche } from "@/components/ui/icones";
@@ -41,9 +37,8 @@ export default async function PageTransactions({
     return `${cc.annee}-${String(cc.mois).padStart(2, "0")}`;
   };
 
-  const filtreCategorie = CATEGORIES_TRANSACTION.includes(
-    params.categorie as CategorieTransaction,
-  )
+  const categories = await listerCategories();
+  const filtreCategorie = categories.some((cat) => cat.cle === params.categorie)
     ? (params.categorie ?? null)
     : null;
 
@@ -110,20 +105,22 @@ export default async function PageTransactions({
         >
           Toutes
         </Link>
-        {CATEGORIES_TRANSACTION.filter(
-          (cat) =>
-            cat === "A_TRIER" ||
-            transactions.some((t) => t.categorie === cat) ||
-            filtreCategorie === cat,
-        ).map((cat) => (
-          <Link
-            key={cat}
-            href={lien({ categorie: filtreCategorie === cat ? null : cat })}
-            className={`rounded-full px-3 py-1.5 text-xs font-medium ring-1 ${filtreCategorie === cat ? "bg-slate-800 text-white ring-slate-800" : "text-slate-600 ring-slate-300"}`}
-          >
-            {LIBELLES_CATEGORIE_TRANSACTION[cat]}
-          </Link>
-        ))}
+        {categories
+          .filter(
+            (cat) =>
+              cat.cle === "A_TRIER" ||
+              transactions.some((t) => t.categorie === cat.cle) ||
+              filtreCategorie === cat.cle,
+          )
+          .map((cat) => (
+            <Link
+              key={cat.cle}
+              href={lien({ categorie: filtreCategorie === cat.cle ? null : cat.cle })}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium ring-1 ${filtreCategorie === cat.cle ? "bg-slate-800 text-white ring-slate-800" : "text-slate-600 ring-slate-300"}`}
+            >
+              {cat.libelle}
+            </Link>
+          ))}
       </div>
       {comptes.length > 1 && (
         <div className="flex flex-wrap gap-1.5">
@@ -159,7 +156,12 @@ export default async function PageTransactions({
         ) : (
           <ul className="divide-y divide-slate-100">
             {transactions.map((t) => (
-              <LigneTransaction key={t.id} transaction={t} nomCompte={t.compte.nom} />
+              <LigneTransaction
+                key={t.id}
+                transaction={t}
+                nomCompte={t.compte.nom}
+                categories={categories}
+              />
             ))}
           </ul>
         )}

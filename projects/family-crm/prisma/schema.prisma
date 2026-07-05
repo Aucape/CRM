@@ -265,6 +265,16 @@ model Transaction {
   @@index([categorie, date])
 }
 
+// Catégorie de dépense créée par la famille, en plus des catégories
+// intégrées (constantes.ts). La clé est un slug unique (« FRAIS_ECOLE »)
+// stocké tel quel dans Transaction.categorie.
+model CategorieDepense {
+  id      String   @id @default(cuid())
+  cle     String   @unique
+  libelle String
+  creeLe  DateTime @default(now())
+}
+
 // Règle de catégorisation automatique : si la contrepartie ou la
 // communication contient le mot-clé, la catégorie est appliquée.
 model RegleCategorie {
