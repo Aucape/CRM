@@ -83,8 +83,13 @@ export default async function PageFactures() {
             {aPayer.map((p) => {
               const retard = joursRestants(p.dateEcheance) < 0;
               return (
-                <li key={p.id} className="flex items-center gap-3 py-3">
-                  <div className="min-w-0 flex-1">
+                <li
+                  key={p.id}
+                  className="flex flex-wrap items-center gap-x-3 gap-y-1.5 py-3"
+                >
+                  {/* basis-52 : sous ~420 px, le groupe montant/payeur/bouton
+                      passe sur sa propre ligne au lieu d'écraser le titre */}
+                  <div className="min-w-0 flex-1 basis-52">
                     <Link
                       href={`/factures/${p.factureId}/modifier`}
                       className="font-medium text-slate-900 hover:text-blue-700"
@@ -104,29 +109,31 @@ export default async function PageFactures() {
                       )}
                     </p>
                   </div>
-                  <span className="font-semibold text-slate-900">
-                    {formaterEuros(p.montantCents)}
-                  </span>
-                  {p.facture.payeur && (
-                    <AvatarMembre
-                      prenom={p.facture.payeur.prenom}
-                      couleur={p.facture.payeur.couleur}
-                      taille="sm"
-                    />
-                  )}
-                  <form action={basculerPaiement}>
-                    <input type="hidden" name="paiementId" value={p.id} />
-                    <input type="hidden" name="payer" value="true" />
-                    <Bouton
-                      type="submit"
-                      variante="secondaire"
-                      className="!min-h-9 !px-3 text-green-700"
-                      title="Marquer payé"
-                    >
-                      <IconeCoche className="h-4.5 w-4.5" />
-                      Payé
-                    </Bouton>
-                  </form>
+                  <div className="ml-auto flex items-center gap-3">
+                    <span className="font-semibold text-slate-900">
+                      {formaterEuros(p.montantCents)}
+                    </span>
+                    {p.facture.payeur && (
+                      <AvatarMembre
+                        prenom={p.facture.payeur.prenom}
+                        couleur={p.facture.payeur.couleur}
+                        taille="sm"
+                      />
+                    )}
+                    <form action={basculerPaiement}>
+                      <input type="hidden" name="paiementId" value={p.id} />
+                      <input type="hidden" name="payer" value="true" />
+                      <Bouton
+                        type="submit"
+                        variante="secondaire"
+                        className="!min-h-9 !px-3 text-green-700"
+                        title="Marquer payé"
+                      >
+                        <IconeCoche className="h-4.5 w-4.5" />
+                        Payé
+                      </Bouton>
+                    </form>
+                  </div>
                 </li>
               );
             })}
