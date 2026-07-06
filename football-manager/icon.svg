@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Icône générée (formes simples) — aucune ressource protégée -->
+  <rect width="128" height="128" rx="28" fill="#0d1421"/>
+  <circle cx="64" cy="58" r="34" fill="#e8eef7"/>
+  <polygon points="64,40 78,50 73,67 55,67 50,50" fill="#0d1421"/>
+  <path d="M64 24a34 34 0 0 1 24 10l-10 8-14-6-14 6-10-8a34 34 0 0 1 24-10z" fill="#0d1421" opacity="0.25"/>
+  <rect x="28" y="98" width="72" height="10" rx="5" fill="#34d27b"/>
+  <text x="64" y="122" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#34d27b">PRÉSIDENT FC</text>
+</svg>

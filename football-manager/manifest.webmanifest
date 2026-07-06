@@ -1,0 +1,16 @@
+{
+  "name": "Président FC — Manager de club",
+  "short_name": "Président FC",
+  "description": "Jeu de gestion de club de football : vous êtes le président, pas l'entraîneur. Solo, 100 % hors ligne.",
+  "lang": "fr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1421",
+  "theme_color": "#0d1421",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

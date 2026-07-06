@@ -1,0 +1,255 @@
+/* Président FC — feuille de style mobile-first (portrait) */
+
+:root {
+  --fond: #0d1421;
+  --fond2: #131e30;
+  --carte: #1a2740;
+  --carte2: #223353;
+  --bord: #2c4066;
+  --texte: #e8eef7;
+  --texte2: #93a5c2;
+  --accent: #34d27b;
+  --accent2: #2aa864;
+  --or: #f5c542;
+  --rouge: #e85d5d;
+  --bleu: #4da3ff;
+  --violet: #a78bfa;
+  --radius: 12px;
+  --nav-h: 58px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  background: var(--fond);
+  color: var(--texte);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+#app { min-height: 100%; padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 8px); }
+
+button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+input, select { font: inherit; }
+
+/* ---------- chargement / accueil ---------- */
+.chargement { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 90vh; gap: 12px; }
+.logo-ballon { font-size: 64px; }
+
+.ecran-titre { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 92vh; gap: 18px; padding: 24px; text-align: center; }
+.ecran-titre h1 { font-size: 34px; letter-spacing: 1px; }
+.ecran-titre .sous-titre { color: var(--texte2); max-width: 300px; }
+.ecran-titre input {
+  width: 100%; max-width: 300px; padding: 12px 14px; border-radius: var(--radius);
+  border: 1px solid var(--bord); background: var(--carte); color: var(--texte); text-align: center;
+}
+
+/* ---------- entête ---------- */
+.entete {
+  position: sticky; top: 0; z-index: 20;
+  background: linear-gradient(180deg, var(--fond2), rgba(19, 30, 48, 0.96));
+  backdrop-filter: blur(6px);
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--bord);
+}
+.entete-ligne1 { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.entete .club-nom { font-weight: 700; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.entete .date-jeu { color: var(--texte2); font-size: 12px; }
+.entete-ligne2 { display: flex; gap: 10px; margin-top: 6px; font-size: 12.5px; color: var(--texte2); flex-wrap: wrap; }
+.entete-ligne2 b { color: var(--texte); font-weight: 600; }
+.tresorerie-neg { color: var(--rouge) !important; }
+.btn-engrenage { font-size: 20px; padding: 4px 8px; }
+
+/* ---------- navigation basse ---------- */
+.nav-basse {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 30;
+  display: flex; justify-content: space-around;
+  background: var(--fond2); border-top: 1px solid var(--bord);
+  padding-bottom: env(safe-area-inset-bottom);
+  height: calc(var(--nav-h) + env(safe-area-inset-bottom));
+}
+.nav-basse button {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; font-size: 10.5px; color: var(--texte2); padding: 6px 0;
+}
+.nav-basse button.actif { color: var(--accent); }
+.nav-basse .ico { font-size: 20px; line-height: 1; }
+.nav-basse .badge-nav { position: relative; }
+.badge-pastille {
+  position: absolute; top: -4px; right: -10px; background: var(--rouge); color: #fff;
+  font-size: 9px; min-width: 15px; height: 15px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; padding: 0 3px; font-weight: 700;
+}
+
+/* ---------- structure ---------- */
+.contenu { padding: 12px 12px 20px; display: flex; flex-direction: column; gap: 12px; }
+.carte {
+  background: var(--carte); border: 1px solid var(--bord); border-radius: var(--radius);
+  padding: 12px;
+}
+.carte h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--texte2); margin-bottom: 8px; }
+.carte h2 { font-size: 17px; margin-bottom: 8px; }
+
+.onglets { display: flex; gap: 6px; overflow-x: auto; padding: 2px; scrollbar-width: none; }
+.onglets::-webkit-scrollbar { display: none; }
+.onglets button {
+  padding: 7px 13px; border-radius: 20px; background: var(--carte); color: var(--texte2);
+  border: 1px solid var(--bord); white-space: nowrap; font-size: 13px; font-weight: 600;
+}
+.onglets button.actif { background: var(--accent); color: #08240f; border-color: var(--accent); }
+
+/* ---------- boutons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 16px; border-radius: var(--radius); font-weight: 700; font-size: 14px;
+  background: var(--carte2); border: 1px solid var(--bord); color: var(--texte);
+}
+.btn:active { transform: scale(0.98); }
+.btn-primaire { background: var(--accent); color: #08240f; border-color: var(--accent); }
+.btn-danger { background: transparent; color: var(--rouge); border-color: var(--rouge); }
+.btn-large { width: 100%; padding: 15px; font-size: 16px; }
+.btn-petit { padding: 6px 10px; font-size: 12.5px; border-radius: 9px; }
+.btn:disabled { opacity: 0.45; pointer-events: none; }
+
+.btn-simuler {
+  width: 100%; padding: 16px; font-size: 17px; font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), #1fb96a); color: #062812;
+  border-radius: 14px; border: none;
+  box-shadow: 0 4px 18px rgba(52, 210, 123, 0.35);
+}
+
+/* ---------- listes de joueurs ---------- */
+.table-scroll { overflow-x: auto; margin: 0 -12px; padding: 0 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; color: var(--texte2); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 6px; border-bottom: 1px solid var(--bord); }
+td { padding: 8px 6px; border-bottom: 1px solid rgba(44, 64, 102, 0.45); }
+tr.cliquable { cursor: pointer; }
+tr.cliquable:active { background: var(--carte2); }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.ligne-joueur-nom { font-weight: 600; }
+.ligne-joueur-sub { font-size: 11px; color: var(--texte2); }
+
+.poste-badge {
+  display: inline-block; min-width: 34px; text-align: center; padding: 2px 5px; border-radius: 6px;
+  font-size: 11px; font-weight: 700;
+}
+.poste-G { background: #7c5f13; color: #ffe9a8; }
+.poste-DEF { background: #16457c; color: #bcdcff; }
+.poste-MIL { background: #1c6b43; color: #b3f0cf; }
+.poste-ATT { background: #7c2020; color: #ffc4c4; }
+
+.note-pastille {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 30px; height: 24px; padding: 0 4px; border-radius: 7px; font-weight: 800; font-size: 13px;
+}
+.note-a { background: #1d7a48; color: #d8ffe9; }
+.note-b { background: #6b6b21; color: #f7f7c9; }
+.note-c { background: #6e4a1d; color: #ffe1bd; }
+.note-d { background: #6e2424; color: #ffd1d1; }
+
+.etat-ico { font-size: 12px; }
+
+/* ---------- fiche joueur / attributs ---------- */
+.attr-ligne { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.attr-nom { width: 84px; font-size: 12px; color: var(--texte2); flex-shrink: 0; }
+.attr-barre { flex: 1; height: 9px; background: var(--fond2); border-radius: 5px; overflow: hidden; }
+.attr-rempli { height: 100%; border-radius: 5px; background: linear-gradient(90deg, #2f9e64, #4ed98c); }
+.attr-val { width: 26px; text-align: right; font-weight: 700; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+
+.stats-grille { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat-bloc { background: var(--fond2); border-radius: 10px; padding: 8px; text-align: center; }
+.stat-bloc .val { font-size: 17px; font-weight: 800; }
+.stat-bloc .lib { font-size: 10.5px; color: var(--texte2); text-transform: uppercase; letter-spacing: 0.4px; }
+
+.grille-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* ---------- curseur d'investissement ---------- */
+input[type="range"] {
+  width: 100%; appearance: none; -webkit-appearance: none; height: 8px; border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent) var(--pct, 30%), var(--fond2) var(--pct, 30%));
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none; -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%;
+  background: #fff; border: 3px solid var(--accent); box-shadow: 0 1px 6px rgba(0,0,0,0.5);
+}
+
+/* ---------- messagerie ---------- */
+.message { border-left: 3px solid var(--bleu); }
+.message.non-lu { border-left-color: var(--accent); background: var(--carte2); }
+.message .msg-titre { font-weight: 700; font-size: 14px; display: flex; gap: 6px; align-items: baseline; }
+.message .msg-date { font-size: 11px; color: var(--texte2); margin-left: auto; white-space: nowrap; }
+.message .msg-corps { font-size: 13px; color: var(--texte2); margin-top: 5px; white-space: pre-wrap; }
+.message .msg-actions { display: flex; gap: 8px; margin-top: 9px; flex-wrap: wrap; }
+
+/* ---------- classement ---------- */
+.rang-joueur { background: rgba(52, 210, 123, 0.12); }
+.forme-pt { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 2px; }
+.forme-V { background: var(--accent); }
+.forme-N { background: var(--texte2); }
+.forme-D { background: var(--rouge); }
+
+/* ---------- score / match ---------- */
+.score-ligne { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13.5px; }
+.score-eq { flex: 1; }
+.score-eq.dom { text-align: right; }
+.score-val { font-weight: 800; font-size: 15px; background: var(--fond2); border-radius: 7px; padding: 3px 9px; white-space: nowrap; }
+.buteurs { font-size: 11.5px; color: var(--texte2); margin-top: 4px; }
+
+.jauge { height: 10px; border-radius: 5px; background: var(--fond2); overflow: hidden; }
+.jauge > div { height: 100%; border-radius: 5px; }
+
+/* ---------- modale ---------- */
+.voile {
+  position: fixed; inset: 0; background: rgba(4, 8, 15, 0.72); z-index: 50;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.modale {
+  background: var(--fond2); border-radius: 18px 18px 0 0; width: 100%; max-width: 560px;
+  max-height: 88vh; overflow-y: auto; padding: 16px 16px calc(20px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--bord);
+  display: flex; flex-direction: column; gap: 12px;
+  animation: montee 0.22s ease-out;
+}
+@keyframes montee { from { transform: translateY(40px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+.modale-titre { display: flex; justify-content: space-between; align-items: center; }
+.modale-titre h2 { font-size: 18px; }
+.btn-fermer { font-size: 22px; color: var(--texte2); padding: 4px 10px; }
+
+.champ { display: flex; flex-direction: column; gap: 4px; }
+.champ label { font-size: 12px; color: var(--texte2); }
+.champ input, .champ select {
+  padding: 10px 12px; border-radius: 10px; border: 1px solid var(--bord);
+  background: var(--carte); color: var(--texte); width: 100%;
+}
+
+.info-bulle { font-size: 12px; color: var(--texte2); font-style: italic; }
+.texte-ok { color: var(--accent); }
+.texte-ko { color: var(--rouge); }
+.texte-or { color: var(--or); }
+.centre { text-align: center; }
+.separateur { height: 1px; background: var(--bord); margin: 4px 0; }
+
+/* ---------- game over ---------- */
+.game-over {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 88vh; gap: 16px; padding: 28px; text-align: center;
+}
+.game-over h1 { color: var(--rouge); font-size: 30px; }
+
+/* ---------- divers ---------- */
+.pill { display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 11.5px; font-weight: 700; background: var(--carte2); border: 1px solid var(--bord); }
+.pill-vert { background: rgba(52, 210, 123, 0.15); color: var(--accent); border-color: rgba(52, 210, 123, 0.4); }
+.pill-rouge { background: rgba(232, 93, 93, 0.15); color: var(--rouge); border-color: rgba(232, 93, 93, 0.4); }
+.pill-or { background: rgba(245, 197, 66, 0.14); color: var(--or); border-color: rgba(245, 197, 66, 0.4); }
+.liste-simple { display: flex; flex-direction: column; gap: 8px; }
+.ligne-flex { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.mini { font-size: 12px; color: var(--texte2); }
+
+@media (min-width: 640px) {
+  #app { max-width: 560px; margin: 0 auto; }
+  .nav-basse { max-width: 560px; left: 50%; transform: translateX(-50%); }
+}
