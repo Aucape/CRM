@@ -1,0 +1,13 @@
+{
+  "name": "president-fc",
+  "version": "1.0.0",
+  "description": "Président FC — jeu de gestion de club de football (solo, 100 % hors ligne, en français)",
+  "private": true,
+  "scripts": {
+    "start": "serve -l 8080 .",
+    "serve": "serve -l 8080 ."
+  },
+  "devDependencies": {
+    "serve": "^14"
+  }
+}

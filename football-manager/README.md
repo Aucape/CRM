@@ -153,7 +153,18 @@ moteur de match, objectifs du conseil, IA… — sont regroupées et commentées
 
 ## Lancer le jeu
 
-Les modules ES exigent un serveur HTTP (pas de `file://`) :
+Les modules ES exigent un serveur HTTP — **le jeu ne fonctionne pas en double-cliquant
+sur `index.html`** (le navigateur bloque les modules en `file://`).
+
+**Avec npm** (recommandé) :
+
+```bash
+cd football-manager
+npm install     # une seule fois : installe le serveur de dev « serve »
+npm start       # puis ouvrir http://localhost:8080
+```
+
+**Sans npm** (Python déjà présent sur la plupart des machines) :
 
 ```bash
 cd football-manager
