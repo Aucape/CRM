@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { exigerParent } from "@/lib/auth";
 import { connecterBanque } from "@/server/actions/finances";
 import { gocardlessConfigure, listerBanquesBelges, type Institution } from "@/lib/gocardless";
-import { Bouton, Carte, EnTetePage } from "@/components/ui/base";
+import { Bouton, Carte, EnTetePage, LienBouton } from "@/components/ui/base";
 
 export const metadata: Metadata = { title: "Connexion bancaire" };
 
@@ -28,23 +28,33 @@ export default async function PageConnexionBancaire() {
         sousTitre="Synchronisation automatique via open banking — optionnelle"
       />
 
-      <Carte>
+      <Carte titre="⚠️ Réservé aux professionnels" className="ring-amber-200">
         <p className="text-sm text-slate-600">
-          La connexion passe par <strong>GoCardless Bank Account Data</strong>,
-          agrégateur open banking agréé PSD2 et gratuit, qui couvre les banques
-          belges (Belfius, KBC, BNP Paribas Fortis, ING, Argenta…). Vous vous
-          authentifiez <strong>chez votre banque</strong> (itsme/carte) — l&apos;app ne
-          voit jamais vos codes. Le consentement est en lecture seule et à
-          renouveler tous les ~90 jours. L&apos;alternative 100 % locale reste
-          l&apos;import CSV.
+          L&apos;accès aux comptes bancaires par API (PSD2) est réglementé : les
+          agrégateurs comme <strong>GoCardless Bank Account Data</strong>, Tink
+          ou Powens ne contractent qu&apos;avec des <strong>entreprises ou
+          indépendants</strong> (numéro d&apos;entreprise demandé à l&apos;inscription).
+          Il n&apos;existe pas aujourd&apos;hui d&apos;API bancaire ouverte aux particuliers
+          en Belgique.
         </p>
+        <p className="mt-2 text-sm text-slate-600">
+          Pour un usage familial, la voie recommandée est l&apos;
+          <strong>import CSV</strong> : exportez vos extraits depuis l&apos;app de
+          votre banque (2 minutes par mois), les doublons sont ignorés et les
+          factures rapprochées automatiquement. Ce connecteur PSD2 reste
+          disponible si un membre du foyer dispose d&apos;un numéro d&apos;entreprise
+          (indépendant, société de management…).
+        </p>
+        <div className="mt-3">
+          <LienBouton href="/finances/import">Importer un extrait CSV</LienBouton>
+        </div>
       </Carte>
 
       {!configure ? (
-        <Carte titre="Configuration requise" className="ring-amber-200">
+        <Carte titre="Configuration (si vous avez un numéro d'entreprise)">
           <ol className="list-inside list-decimal space-y-1.5 text-sm text-slate-600">
             <li>
-              Créez un compte gratuit sur{" "}
+              Créez un compte sur{" "}
               <a
                 href="https://bankaccountdata.gocardless.com"
                 className="font-medium text-blue-700 underline"
@@ -53,7 +63,8 @@ export default async function PageConnexionBancaire() {
               >
                 bankaccountdata.gocardless.com
               </a>{" "}
-              puis générez des « User secrets » (portail développeur).
+              (gratuit, mais réservé aux professionnels) puis générez des
+              « User secrets » dans le portail développeur.
             </li>
             <li>
               Ajoutez dans votre fichier <code className="rounded bg-slate-100 px-1">.env</code> :
@@ -63,6 +74,10 @@ export default async function PageConnexionBancaire() {
             </li>
             <li>Redémarrez l&apos;application : la liste des banques apparaîtra ici.</li>
           </ol>
+          <p className="mt-2 text-xs text-slate-400">
+            Vous vous authentifiez alors chez votre banque (itsme) ; consentement
+            en lecture seule, à renouveler tous les ~90 jours.
+          </p>
         </Carte>
       ) : erreurApi ? (
         <Carte className="ring-red-200">

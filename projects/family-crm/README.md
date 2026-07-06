@@ -83,10 +83,13 @@ deviné automatiquement, importez : doublons ignorés (ré-import sans risque),
 catégorisation par vos règles (★ sur une transaction), et **rapprochement
 automatique** — une dépense qui correspond à une facture « à payer » (même
 montant, échéance à ±7 jours) marque la facture payée et clôt son échéance.
-*Connexion bancaire (PSD2, optionnelle)* : ajoutez des clés GoCardless Bank
-Account Data gratuites dans `.env` (voir `/finances/connexion`) pour relier
-vos comptes et synchroniser transactions + soldes sans CSV. Sans clés, tout
-fonctionne en local.
+*Connexion bancaire (PSD2, optionnelle — professionnels uniquement)* :
+l'accès aux comptes par API est réglementé et les agrégateurs (GoCardless
+Bank Account Data, Tink…) ne s'ouvrent qu'aux entreprises/indépendants ;
+il n'existe pas d'API bancaire pour particuliers en Belgique. Si un membre
+du foyer a un numéro d'entreprise, ajoutez des clés GoCardless dans `.env`
+(voir `/finances/connexion`) pour synchroniser transactions + soldes.
+Sinon, l'import CSV est la voie prévue — 2 minutes par mois, tout en local.
 
 **Recherche (`/recherche`)** — un mot (min. 2 lettres) cherche dans tous les
 modules, insensible aux accents : essayez « emma » ou « engie ».

@@ -299,7 +299,7 @@ export default async function PageFinances({
             </>
           ) : (
             <Link href="/finances/connexion" className="text-xs text-slate-400 underline">
-              Connexion bancaire automatique (PSD2) : voir la configuration
+              Connexion bancaire automatique (PSD2, indépendants/sociétés uniquement)
             </Link>
           )}
         </div>
