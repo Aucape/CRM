@@ -4,6 +4,7 @@
 import {
   clubJoueur, clubById, avancerSemaine, executerActionMessage, nouvellePartie,
   libelleObjectif, progressionObjectif, rangClub, fmtEuro as fE,
+  DEMANDES, demandeDisponible, faireDemandeConseil,
 } from '../engine/game.js';
 import { BALANCE } from '../config.js';
 import { S, rerender, naviguer, ouvrirModale, fermerModale, autoSave, defActions } from './state.js';
@@ -162,6 +163,24 @@ function rConseil() {
       la patience du conseil et l'accès aux sponsors prestigieux. À 0 : révocation (game over).</p></div>
     <div class="carte"><h3>Budget mercato</h3><b>${fmtEuro(club.budgetMercato)}</b>
       <p class="mini">Alloué par le conseil selon sa confiance et le classement.</p></div>
+    <div class="carte"><h3>Faire une demande au conseil</h3>
+      <p class="mini" style="margin-bottom:8px">Une demande par type et par saison. Le succès dépend de votre confiance ;
+      obtenir une faveur consomme un peu de capital politique.</p>
+      <div class="liste-simple">
+        ${Object.entries(DEMANDES).map(([type, d]) => {
+          const dispo = demandeDisponible(g, type);
+          const reponse = (club.reponsesDemandes || {})[type];
+          return `<div>
+            <div class="ligne-flex">
+              <div><b style="font-size:13px">${d.titre}</b><div class="mini">${d.desc}</div></div>
+              <button class="btn btn-petit ${dispo.ok ? 'btn-primaire' : ''}" ${dispo.ok ? '' : 'disabled'}
+                data-act="demanderConseil" data-arg='${JSON.stringify({ type })}'>Demander</button>
+            </div>
+            ${!dispo.ok ? `<div class="mini" style="opacity:.7">${esc(dispo.raison)}</div>` : ''}
+            ${reponse && reponse.saison === g.saison ? `<div class="mini ${reponse.accepte ? 'texte-ok' : 'texte-ko'}">➤ ${esc(reponse.message)}</div>` : ''}
+          </div>`;
+        }).join('')}
+      </div></div>
     <h2 style="margin:4px 0 0">Objectifs — Saison ${g.saison}</h2>
     ${objHtml || '<p class="mini">Aucun objectif défini.</p>'}
     ${histo ? `<div class="carte"><h3>Saisons passées</h3><div class="table-scroll"><table>
@@ -262,9 +281,11 @@ defActions({
       S.simEnCours = false;
       if (S.game.gameOver) {
         S.ecran = 'gameover';
+        S.pileModales = [];
       } else {
-        S.modale = { type: 'resultats', journee: journeeJouee };
+        S.pileModales = [{ type: 'resultats', journee: journeeJouee }];
       }
+      S.modale = S.pileModales[S.pileModales.length - 1] || null;
       await autoSave();
       rerender();
     }, 30);
@@ -279,6 +300,19 @@ defActions({
   },
 
   allerMessagerie() { naviguer('accueil', 'messagerie'); },
+
+  demanderConseil(arg) {
+    const r = faireDemandeConseil(S.game, arg.type);
+    if (r.ok) {
+      const club = clubJoueur(S.game);
+      club.reponsesDemandes = club.reponsesDemandes || {};
+      club.reponsesDemandes[arg.type] = { saison: S.game.saison, accepte: r.accepte, message: r.message };
+    } else if (r.message) {
+      alert(r.message);
+    }
+    autoSave();
+    rerender();
+  },
 
   sousOnglet(arg) {
     if (arg.o === 'accueil' && arg.s === 'messagerie') {
@@ -302,7 +336,7 @@ defActions({
     S.game = g;
     S.ecran = g.gameOver ? 'gameover' : 'jeu';
     S.onglet = 'accueil'; S.sous.accueil = 'bureau';
-    S.modale = null;
+    S.pileModales = []; S.modale = null;
     rerender();
   },
 
@@ -321,7 +355,7 @@ defActions({
   retourTitre() {
     S.game = null;
     S.ecran = 'titre';
-    S.modale = null;
+    S.pileModales = []; S.modale = null;
     rafraichirSlots().then(rerender);
     rerender();
   },

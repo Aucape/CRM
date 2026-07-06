@@ -6,7 +6,7 @@ import {
   joueurMarche, acheterJoueur, fmtEuro as fE,
 } from '../engine/game.js';
 import { BALANCE } from '../config.js';
-import { S, rerender, ouvrirModale, fermerModale, autoSave, defActions } from './state.js';
+import { S, rerender, ouvrirModale, remplacerModale, fermerModale, autoSave, defActions } from './state.js';
 import { esc, fmtNote, badgePoste, fmtEuro, NOMS_POSTES } from './helpers.js';
 
 export function rMarche() {
@@ -117,7 +117,7 @@ defActions({
     if (r.ok) {
       fermerModale();
     } else {
-      ouvrirModale({ type: 'achat', id: arg.id, erreur: r.raison, montant, salaire });
+      remplacerModale({ type: 'achat', id: arg.id, erreur: r.raison, montant, salaire });
     }
     autoSave();
   },

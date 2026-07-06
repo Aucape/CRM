@@ -132,11 +132,12 @@ function rStaff() {
     <div class="carte" style="padding:10px">
       <div class="ligne-flex"><div>
         <b>${esc(sc.prenom + ' ' + sc.nom)}</b> <span class="mini">${etoiles(sc.niveau)} · ${fmtEuro(sc.salaire)}/sem</span>
+        ${sc.mission ? '<span class="pill pill-vert">✈️ En mission</span>' : '<span class="pill pill-rouge">Au repos</span>'}
         <div class="mini">${sc.mission
-          ? `Mission : ${sc.mission.type === 'jeunes' ? 'jeunes talents' : 'marché pro'}, ${sc.mission.ageMin}-${sc.mission.ageMax} ans${sc.mission.poste ? ', ' + NOMS_POSTES[sc.mission.poste] : ''}`
-          : '<span class="texte-ko">Sans mission</span>'}</div></div>
+          ? `${sc.mission.type === 'jeunes' ? '🎓 Jeunes talents' : '💼 Marché pro'} · ${sc.mission.ageMin}-${sc.mission.ageMax} ans${sc.mission.poste ? ' · ' + NOMS_POSTES[sc.mission.poste] : ' · tous postes'}`
+          : '<span class="texte-ko">Sans mission — il ne cherche personne. Envoyez-le sur le terrain.</span>'}</div></div>
         <div style="display:flex;gap:6px;flex-direction:column">
-          <button class="btn btn-petit btn-primaire" data-act="voirMission" data-arg='${JSON.stringify({ scoutId: sc.id })}'>Mission</button>
+          <button class="btn btn-petit ${sc.mission ? '' : 'btn-primaire'}" data-act="voirMission" data-arg='${JSON.stringify({ scoutId: sc.id })}'>${sc.mission ? '✈️ Modifier' : '✈️ Envoyer'}</button>
           <button class="btn btn-petit btn-danger" data-act="virerStaff" data-arg='${JSON.stringify({ role: 'scout', scoutId: sc.id })}'>✕</button>
         </div></div></div>`).join('');
 

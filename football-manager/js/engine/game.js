@@ -11,7 +11,7 @@ import { resetStaffIds, genCandidats } from './staff.js';
 import { genCalendrier, tableVierge, classement, rangClub } from './league.js';
 import { simulerSemaine, clubById } from './week.js';
 import { finDeSaison, nouvelleSaison, statsSaisonVierges, meilleursDeLaSaison } from './season.js';
-import { genObjectifs, libelleObjectif, progressionObjectif } from './board.js';
+import { genObjectifs, libelleObjectif, progressionObjectif, demanderConseil, peutDemander, DEMANDES } from './board.js';
 import { accepterOffre, contreProposition, texteOffre, sponsorsHebdo, SLOT_LABELS, BONUS_LABELS, fmtEuro } from './sponsors.js';
 import { regenererMarche, negocierTransfert, signerJeuneScoute, vendreJoueur, joueurMarche, fourchettePotentiel } from './market.js';
 import { mouvementExceptionnel } from './finance.js';
@@ -20,7 +20,15 @@ import { msg, marquerTraite, resetMsgIds } from './messages.js';
 export { clubById, classement, rangClub, libelleObjectif, progressionObjectif,
   SLOT_LABELS, BONUS_LABELS, fmtEuro, texteOffre, noteGlobale, valeurMarchande,
   salaireDemande, nomComplet, joueurMarche, meilleursDeLaSaison, trouverJoueur,
-  fourchettePotentiel, categoriePourAge };
+  fourchettePotentiel, categoriePourAge, DEMANDES };
+
+// demandes au conseil (délègue au module board, puis sauvegarde côté UI)
+export function faireDemandeConseil(game, type) {
+  return demanderConseil(game, clubJoueur(game), type);
+}
+export function demandeDisponible(game, type) {
+  return peutDemander(game, clubJoueur(game), type);
+}
 
 // ---------------------------------------------------------------------------
 // NOUVELLE PARTIE

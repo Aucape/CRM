@@ -4,7 +4,7 @@
 
 import { clubJoueur } from '../engine/game.js';
 import { BALANCE } from '../config.js';
-import { S, setRender, rerender, ACTIONS, defActions, naviguer } from './state.js';
+import { S, setRender, rerender, ACTIONS, defActions, naviguer, fermerModale } from './state.js';
 import { esc, fmtEuro } from './helpers.js';
 import { charger, listerSlots } from '../storage.js';
 import { rTitre, rGameOver, rAccueil, mResultats, mSauvegardes } from './screens-accueil.js';
@@ -92,7 +92,7 @@ app.addEventListener('input', (e) => {
 
 defActions({
   nav(arg) { naviguer(arg.o); },
-  fermerModale() { S.modale = null; rerender(); },
+  fermerModale() { fermerModale(); },
 });
 
 // ---------------------------------------------------------------------------

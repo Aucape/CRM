@@ -149,20 +149,31 @@ export function scoutingHebdo(game, club) {
 
     const mi = scout.mission;
     if (mi.type === 'jeunes') {
-      // découvre un jeune (13-19 ans) à signer au centre de formation
-      const age = randInt(game, Math.max(mi.ageMin, sc.ageMinJeunes), Math.min(mi.ageMax, sc.ageMaxJeunes));
-      const qualite = 25 + scout.niveau * sc.qualiteParNiveau + randFloat(game, -6, 8) + age * 1.2;
+      // découvre un jeune (13-19 ans) à intégrer au centre de formation.
+      const lo = Math.max(mi.ageMin, sc.ageMinJeunes);
+      const hi = Math.min(mi.ageMax, sc.ageMaxJeunes);
+      // biais vers les plus jeunes : on garde le MIN de plusieurs tirages
+      // → beaucoup plus de 13-15 ans que de 16-19 ans (meilleur pour former).
+      let age = randInt(game, lo, hi);
+      for (let k = 1; k < sc.jeuneBiaisAge; k++) age = Math.min(age, randInt(game, lo, hi));
+      // note actuelle MODESTE et croissante avec l'âge (un 13-14 ans est faible aujourd'hui)
+      const cible = sc.jeuneNoteBase + (age - sc.ageMinJeunes) * sc.jeuneNoteParAge
+        + scout.niveau * sc.jeuneNoteParNiveau + randFloat(game, -4, 5);
+      // ...mais un bon scout repère de gros potentiels (c'est là toute la valeur)
+      const bonusPot = scout.niveau * sc.jeuneBonusPotentielParNiveau + randFloat(game, 0, scout.niveau * 2);
       const joueur = genJoueur(game, {
-        age, poste: mi.poste || undefined, cible: qualite,
-        bonusPotentiel: scout.niveau * 1.2,
+        age, poste: mi.poste || undefined, cible, bonusPotentiel: bonusPot,
       });
+      joueur.formeAuClub = true;   // formé au club dès la signature (compte pour les objectifs)
       const fourchette = fourchettePotentiel(game, joueur, scout.niveau, bonusDR);
+      const marge = fourchette.min - Math.round(noteGlobale(joueur));
       msg(game, {
         type: 'scout',
         titre: `Rapport de scout : ${nomComplet(joueur)} (${joueur.age} ans, ${joueur.poste})`,
         corps: `${scout.prenom} ${scout.nom} (niv. ${scout.niveau}) a repéré ce jeune.\n` +
-          `Note actuelle : ${Math.round(noteGlobale(joueur))}\n` +
-          `Potentiel estimé : ${fourchette.min} – ${fourchette.max}\n` +
+          `Note actuelle : ${Math.round(noteGlobale(joueur))} (normal à cet âge)\n` +
+          `Potentiel estimé : ${fourchette.min} – ${fourchette.max}` +
+          `${marge >= 20 ? '  ⭐ gros potentiel !' : ''}\n` +
           `Frais de signature : ${Math.round(sc.fraisSignatureJeune / 1000)} k€`,
         actions: [
           { label: 'Signer au centre de formation', action: 'signerJeune', data: { joueur } },

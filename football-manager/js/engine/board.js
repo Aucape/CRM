@@ -5,6 +5,7 @@ import { rand, randInt, clamp, shuffle } from './rng.js';
 import { forceEffectif, masseSalarialeHebdo } from './club.js';
 import { rangClub, classement } from './league.js';
 import { fmtEuro } from './sponsors.js';
+import { mouvementExceptionnel } from './finance.js';
 
 // ---------------------------------------------------------------------------
 // Génération des objectifs — calibrés selon la force de l'effectif,
@@ -163,4 +164,81 @@ export function budgetMercato(game, club, rang) {
   const f = BALANCE.finances;
   const primeRang = Math.round(f.primeClassement[rang - 1] * 0.25);
   return f.budgetMercatoBase + Math.round(club.confianceConseil * f.budgetMercatoParConfiance) + primeRang;
+}
+
+// ---------------------------------------------------------------------------
+// Demandes du président au conseil (une fois par type et par saison).
+// Le succès dépend de la confiance ; obtenir une faveur « consomme » un peu de
+// capital politique (la confiance baisse : le conseil attend un retour).
+// ---------------------------------------------------------------------------
+export const DEMANDES = {
+  budget: {
+    titre: 'Rallonge de budget mercato',
+    desc: "Demander des fonds supplémentaires pour recruter cette saison.",
+    confMin: 35,
+  },
+  soutien: {
+    titre: 'Soutien financier exceptionnel',
+    desc: 'Obtenir une injection de trésorerie (seulement si les finances sont dans le rouge).',
+    confMin: 50,
+  },
+  patience: {
+    titre: 'Demander de la patience au conseil',
+    desc: 'Rassurer le conseil sur le projet à long terme après une mauvaise passe.',
+    confMin: 0,
+  },
+};
+
+export function peutDemander(game, club, type) {
+  const d = DEMANDES[type];
+  if (!d) return { ok: false, raison: 'Demande inconnue.' };
+  if ((club.demandesConseil || {})[type] === game.saison) {
+    return { ok: false, raison: 'Déjà demandé cette saison.' };
+  }
+  if (type === 'soutien' && club.tresorerie >= 0) {
+    return { ok: false, raison: 'Réservé aux situations de trésorerie négative.' };
+  }
+  return { ok: true };
+}
+
+export function demanderConseil(game, club, type) {
+  const pd = peutDemander(game, club, type);
+  if (!pd.ok) return { ok: false, message: pd.raison };
+  const d = DEMANDES[type];
+  club.demandesConseil = club.demandesConseil || {};
+  club.demandesConseil[type] = game.saison;   // consommé pour la saison
+  const conf = club.confianceConseil;
+
+  if (type === 'budget') {
+    const accepte = conf >= d.confMin && rand(game) < 0.35 + conf / 200;
+    if (accepte) {
+      const montant = Math.round((120_000 + conf * 6000) / 10_000) * 10_000;
+      club.budgetMercato += montant;
+      club.confianceConseil = clamp(conf - 5, 0, 100);
+      return { ok: true, accepte: true, message: `Le conseil accorde une rallonge de ${fmtEuro(montant)} au budget mercato. En contrepartie, il attend des résultats (confiance −5).` };
+    }
+    return { ok: true, accepte: false, message: 'Le conseil juge le budget actuel suffisant et décline poliment.' };
+  }
+
+  if (type === 'soutien') {
+    const accepte = conf >= d.confMin && rand(game) < 0.30 + conf / 250;
+    if (accepte) {
+      const montant = Math.round(Math.min(1_800_000, -club.tresorerie * 1.15 + 250_000) / 10_000) * 10_000;
+      mouvementExceptionnel(club, montant);
+      club.confianceConseil = clamp(conf - 9, 0, 100);
+      return { ok: true, accepte: true, message: `Injection exceptionnelle de ${fmtEuro(montant)} en trésorerie. Le conseil s'attend à un redressement (confiance −9).` };
+    }
+    return { ok: true, accepte: false, message: 'Le conseil refuse le renflouement et vous demande de gérer avec les moyens du bord.' };
+  }
+
+  if (type === 'patience') {
+    const accepte = rand(game) < 0.4 + (60 - conf) / 200;   // plus efficace quand la confiance est basse
+    if (accepte) {
+      club.confianceConseil = clamp(conf + 4, 0, 100);
+      club.serieDefaites = 0;
+      return { ok: true, accepte: true, message: 'Votre discours convainc : le conseil renouvelle sa confiance dans le projet (confiance +4).' };
+    }
+    return { ok: true, accepte: false, message: "Le conseil vous écoute mais reste sur ses gardes : ce sont les résultats qui parleront." };
+  }
+  return { ok: false, message: 'Demande inconnue.' };
 }

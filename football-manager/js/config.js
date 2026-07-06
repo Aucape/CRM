@@ -282,10 +282,18 @@ export const BALANCE = {
     maxScouts: 3,
     precisionPotentiel: [20, 15, 11, 8, 5],   // ± fourchette de potentiel par niveau de scout (1-5)
     probaRapportHebdo: 0.55,                  // probabilité de trouver un joueur par semaine de mission
-    qualiteParNiveau: 6,                      // niveau du scout ↑ → joueurs trouvés meilleurs
+    qualiteParNiveau: 6,                      // (marché pro) niveau du scout ↑ → joueurs trouvés meilleurs
     bonusDirecteurRecrutement: 0.15,          // +15 % de proba de rapport et meilleure précision
     ageMinJeunes: 13, ageMaxJeunes: 19,       // marché des jeunes
     fraisSignatureJeune: 15_000,              // indemnité de formation pour signer un jeune scouté
+    // --- Jeunes repérés : on VALORISE LE POTENTIEL, pas la note actuelle ---
+    // La note actuelle d'un jeune de 13-15 ans reste faible ; c'est sa marge de
+    // progression (potentiel) qui fait sa valeur, révélée par le niveau du scout.
+    jeuneNoteBase: 17,                        // note actuelle d'un jeune de 13 ans repéré
+    jeuneNoteParAge: 3.0,                     // + par année au-dessus de 13 ans
+    jeuneNoteParNiveau: 1.3,                  // + léger selon le niveau du scout
+    jeuneBiaisAge: 3,                         // nb de tirages d'âge dont on garde le MIN (↑ = plus de 13-15 ans)
+    jeuneBonusPotentielParNiveau: 4.5,        // potentiel supplémentaire par niveau de scout (repère les pépites)
   },
   mercato: {
     ageMinPro: 15,                   // recrutement possible dès 15 ans pour l'équipe première
